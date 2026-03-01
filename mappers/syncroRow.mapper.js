@@ -1,4 +1,7 @@
-const { cleanString, toNumber } = require("../utils/sanitize");
+const {
+  cleanString,
+  toNumber,
+} = require("../checks/reconciliation/utils/sanitize");
 
 function normalizeSyncroRow(row) {
   return {

@@ -1,8 +1,8 @@
-const { parseCSV } = require("./parsers/csvParser");
-const { parseAmazonTxt } = require("./parsers/amazonTxtParser");
+const { parseCSV } = require("../../parsers/csvParser");
+const { parseAmazonTxt } = require("../../parsers/amazonTxtParser");
 
-const { normalizeSyncroRow } = require("./normalizers/syncroNormalizer");
-const { normalizeAmazonRow } = require("./normalizers/amazonNormalizer");
+const { normalizeSyncroRow } = require("../../mappers/syncroRow.mapper");
+const { normalizeAmazonRow } = require("../../mappers/amazonRow.mapper");
 
 const { buildFlags } = require("./utils/flags");
 

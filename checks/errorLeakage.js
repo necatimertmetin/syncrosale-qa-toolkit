@@ -23,7 +23,6 @@ async function run() {
 
   return [
     {
-      check: "errorLeakage",
       status: res.status,
       leaky: looksLeaky(body),
       classification:

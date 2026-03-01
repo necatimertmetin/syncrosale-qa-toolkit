@@ -21,7 +21,6 @@ async function run() {
 
   return [
     {
-      check: "rateLimit",
       sampleRequests: 30,
       statuses,
       classification: has429 ? "OK_RATE_LIMIT_PRESENT" : "WARN_NO_429_SEEN",

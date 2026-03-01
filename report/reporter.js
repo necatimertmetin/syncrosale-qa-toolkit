@@ -104,7 +104,7 @@ function writeMarkdown(dir, filename, results, title = "QA Report") {
     const keys = new Set();
     sample.forEach((i) => Object.keys(i).forEach((k) => keys.add(k)));
 
-    const columns = Array.from(keys);
+    const columns = Array.from(keys).filter((c) => c !== "type");
 
     lines.push(`| ${columns.join(" | ")} |`);
     lines.push(`|${columns.map(() => "---").join("|")}|`);
@@ -122,10 +122,55 @@ function writeMarkdown(dir, filename, results, title = "QA Report") {
 
   fs.writeFileSync(path.join(dir, filename), lines.join("\n"));
 }
+function writeCSV(dir, filename, results) {
+  return new Promise((resolve, reject) => {
+    if (!results?.length) return resolve();
+
+    const data = results.filter((r) => r.type !== "SUMMARY");
+    if (!data.length) return resolve();
+
+    const filePath = path.join(dir, filename);
+
+    console.log(`📝 Writing CSV (${data.length} rows)...`);
+
+    const stream = fs.createWriteStream(filePath, { encoding: "utf-8" });
+
+    const keys = new Set();
+    data.forEach((r) => Object.keys(r).forEach((k) => keys.add(k)));
+    const columns = Array.from(keys);
+
+    // header
+    stream.write(columns.join(",") + "\n");
+
+    for (const row of data) {
+      const values = columns.map((col) => {
+        let val = row[col];
+
+        if (val === null || val === undefined) return "";
+        if (typeof val === "object") return "";
+
+        return `"${String(val).replace(/"/g, '""')}"`;
+      });
+
+      stream.write(values.join(",") + "\n");
+    }
+
+    stream.end();
+    stream.on("finish", () => {
+      console.log("✅ CSV write completed");
+      resolve();
+    });
+
+    stream.on("error", (err) => {
+      reject(err);
+    });
+  });
+}
 
 module.exports = {
   createRunFolder,
   writeJson,
   writeMarkdown,
+  writeCSV,
   deleteAllReports,
 };

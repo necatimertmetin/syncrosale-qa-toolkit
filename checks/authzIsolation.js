@@ -17,7 +17,6 @@ async function run() {
   const controlRes = await getWithAuth(PRODUCT_PATH(STORE_ID, KNOWN_GOOD_ASIN));
 
   results.push({
-    check: "authzIsolation",
     scenario: "control_same_store",
     storeId: STORE_ID,
     status: controlRes.status,
@@ -33,7 +32,6 @@ async function run() {
     const res = await getWithAuth(PRODUCT_PATH(otherStoreId, KNOWN_GOOD_ASIN));
 
     results.push({
-      check: "authzIsolation",
       scenario: "cross_store_access",
       storeId: otherStoreId,
       status: res.status,

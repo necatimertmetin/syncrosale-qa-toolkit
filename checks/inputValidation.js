@@ -27,7 +27,6 @@ async function run() {
     const res = await getWithAuth(path);
 
     results.push({
-      check: "inputValidation",
       asinSample: asin,
       status: res.status,
       classification: classify(res.status),

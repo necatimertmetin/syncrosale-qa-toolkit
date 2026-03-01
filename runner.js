@@ -6,6 +6,7 @@ const {
   writeJson,
   writeMarkdown,
   deleteAllReports,
+  writeCSV,
 } = require("./report/reporter");
 
 const { createCLI } = require("./cli/menu");
@@ -14,6 +15,7 @@ const { createCLI } = require("./cli/menu");
 const performance = require("./checks/performance");
 const reconciliation = require("./checks/reconciliation/run");
 const profitValidation = require("./checks/profitValidation/run");
+const buyableButNotActive = require("./checks/buyableButNotActive/run");
 
 // security
 const inputValidation = require("./checks/inputValidation");
@@ -22,17 +24,95 @@ const errorLeakage = require("./checks/errorLeakage");
 const rateLimit = require("./checks/rateLimit");
 
 const tools = [
-  { name: "API Performance Analyzer", run: performance.run },
-  { name: "Data Reconciliation", run: reconciliation.run },
-  { name: "Profit Calculation Validation", run: profitValidation.run },
-
-  { name: "Input Validation", run: inputValidation.run },
-  { name: "AuthZ Isolation", run: authzIsolation.run },
-  { name: "Error Leakage", run: errorLeakage.run },
-  { name: "Rate Limit", run: rateLimit.run },
+  {
+    section: "DATA",
+    name: "API Performance Analyzer",
+    description:
+      "Measures API response time, payload size and status codes for critical endpoints",
+    input: "No input required",
+    output: "Response time, status code, payload size per endpoint",
+    impact: "MEDIUM",
+    run: performance.run,
+  },
 
   {
+    section: "DATA",
+    name: "Data Reconciliation",
+    description: "Compares Syncro CSV and Amazon TXT data...",
+    input: "Amazon TXT + Syncro CSV",
+    output: "Mismatch report + summary",
+    impact: "HIGH",
+    run: reconciliation.run,
+  },
+
+  {
+    section: "DATA",
+    name: "Profit Calculation Validation",
+    description: "Validates backend profit...",
+    input: "Order ID",
+    output: "Profit diff + breakdown",
+    impact: "HIGH",
+    run: profitValidation.run,
+  },
+
+  {
+    section: "DATA",
+    name: "Buyable but Not Active",
+    description: "Detects listing inconsistency",
+    input: "Syncro CSV",
+    output: "ASIN list",
+    impact: "MEDIUM",
+    run: buyableButNotActive.run,
+  },
+
+  // 🔐 SECURITY
+  {
+    section: "SECURITY",
+    name: "Input Validation",
+    description: "Tests malformed inputs",
+    input: "None",
+    output: "Status + classification",
+    impact: "LOW",
+    run: inputValidation.run,
+  },
+
+  {
+    section: "SECURITY",
+    name: "AuthZ Isolation",
+    description: "Cross-store access control test",
+    input: "Store IDs",
+    output: "403/404 validation",
+    impact: "HIGH",
+    run: authzIsolation.run,
+  },
+
+  {
+    section: "SECURITY",
+    name: "Error Leakage",
+    description: "Detects stacktrace leaks",
+    input: "None",
+    output: "Leak detection",
+    impact: "HIGH",
+    run: errorLeakage.run,
+  },
+
+  {
+    section: "SECURITY",
+    name: "Rate Limit",
+    description: "Stress test for rate limiting",
+    input: "None",
+    output: "429 detection",
+    impact: "MEDIUM",
+    run: rateLimit.run,
+  },
+
+  {
+    section: "SECURITY",
     name: "Run All Security Tests",
+    description: "Runs all security checks",
+    input: "None",
+    output: "Combined results",
+    impact: "HIGH",
     run: async () => [
       ...(await inputValidation.run()),
       ...(await authzIsolation.run()),
@@ -41,7 +121,15 @@ const tools = [
     ],
   },
 
-  { name: "Clear All Reports", type: "danger" },
+  {
+    section: "SYSTEM",
+    name: "Clear All Reports",
+    description: "Deletes all generated reports",
+    input: "Confirmation",
+    output: "All reports removed",
+    impact: "DANGER",
+    type: "danger",
+  },
 ];
 
 // CLI oluştur
@@ -68,21 +156,27 @@ const cli = createCLI({
 
       await initAuth();
 
-      const result = await selected.run?.(cli);
-
+      let result = await selected.run?.(cli);
       const toolName = selected.name.toLowerCase().replace(/[^\w]+/g, "_");
       const dir = createRunFolder(toolName);
 
       if (result) {
         writeJson(dir, "results.json", result);
         writeMarkdown(dir, "report.md", result, selected.name);
+        if (
+          selected.name.includes("Reconciliation") ||
+          selected.name.includes("Buyable")
+        ) {
+          await writeCSV(dir, "report.csv", result);
+        }
       }
-
+      result = null;
       console.log(`\n📁 Saved to: ${dir}`);
     } catch (e) {
       console.log("❌ ERROR:", e.message);
     }
-
+    result = null;
+    global.gc?.();
     cli.waitReturn();
   },
 

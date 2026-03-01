@@ -3,6 +3,36 @@ const chalk = require("chalk").default;
 
 let keypressHandler = null;
 
+function clearScreen() {
+  console.clear();
+}
+function getImpactColor(impact) {
+  switch (impact) {
+    case "HIGH":
+      return chalk.red.bold;
+    case "MEDIUM":
+      return chalk.yellow;
+    case "LOW":
+      return chalk.green;
+    case "DANGER":
+      return chalk.bgRed.white.bold;
+    default:
+      return chalk.gray;
+  }
+}
+
+function getToolIcon(name) {
+  if (name.includes("Performance")) return "⚡ ";
+  if (name.includes("Reconciliation")) return "🔄 ";
+  if (name.includes("Profit")) return "💰 ";
+  if (name.includes("Buyable")) return "📦 ";
+  if (name.includes("Security")) return "🛡️ ";
+  if (name.includes("Rate")) return "🚦 ";
+  if (name.includes("Error")) return "🐞 ";
+  if (name.includes("Auth")) return "🔐 ";
+  return "🔹 ";
+}
+
 function createCLI({ tools, onSelect, onExit }) {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -15,42 +45,109 @@ function createCLI({ tools, onSelect, onExit }) {
   if (process.stdin.isTTY) process.stdin.setRawMode(true);
 
   // GLOBAL CTRL+C HANDLER
-  process.on("SIGINT", () => {
-    console.log(chalk.yellow("\n👋 Force exit"));
+  process.on("SIGINT", async () => {
+    console.log(chalk.yellow("\n👋 Force exit (cleaning up...)"));
 
     try {
+      // 🔥 stdin raw mode kapat
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);
       }
-    } catch {}
 
-    rl.close();
+      // 🔥 tüm listener'ları temizle
+      process.stdin.removeAllListeners("keypress");
+
+      // 🔥 readline kapat
+      rl.close();
+
+      // 🔥 stdout flush (çok kritik)
+      await new Promise((resolve) => process.stdout.write("", resolve));
+
+      // 🔥 stderr flush
+      await new Promise((resolve) => process.stderr.write("", resolve));
+
+      // 🔥 GC (varsa)
+      if (global.gc) {
+        global.gc();
+      }
+    } catch (err) {
+      console.log("Cleanup error:", err.message);
+    }
+
     onExit?.();
     process.exit(0);
   });
 
   function printHeader() {
-    console.log(chalk.gray("=".repeat(50)));
+    console.log(chalk.gray("=".repeat(60)));
     console.log(chalk.bold.cyan("🧪 SYNCRO QA TOOLKIT"));
-    console.log(chalk.gray("=".repeat(50)));
-    console.log(chalk.gray(`🌐 API: ${process.env.SYNCRO_API_URL}`));
-    console.log(chalk.gray(`🕒 ${new Date().toLocaleString()}`));
-    console.log("");
+    console.log(chalk.gray("=".repeat(60)));
+
+    console.log(
+      chalk.gray("🌐 API: ") + chalk.white(process.env.SYNCRO_API_URL),
+    );
+
+    console.log(chalk.gray("🕒 ") + chalk.white(new Date().toLocaleString()));
+
+    console.log(chalk.gray("=".repeat(60)));
   }
 
   function renderMenu() {
-    console.clear();
+    clearScreen();
     printHeader();
+
+    let lastSection = null;
 
     tools.forEach((tool, i) => {
       const isSelected = i === selectedIndex;
+      const icon = getToolIcon(tool.name);
+
+      // 🔥 SECTION HEADER
+      if (tool.section !== lastSection) {
+        lastSection = tool.section;
+
+        console.log(
+          chalk.gray("\n" + "━".repeat(20)) +
+            " " +
+            chalk.bold.white(tool.section) +
+            " " +
+            chalk.gray("━".repeat(20)),
+        );
+      }
 
       if (isSelected) {
-        console.log(chalk.bgCyan.black(` 👉 ${tool.name} `));
+        console.log(chalk.bgCyan.black(` ${icon} ${tool.name} `));
       } else {
-        console.log(chalk.gray(`    ${tool.name}`));
+        console.log(chalk.whiteBright(`    ${icon} ${tool.name}`));
       }
     });
+
+    // 🔥 TOOL DETAILS (aynı kalıyor)
+    const selected = tools[selectedIndex];
+
+    if (selected && selected.description) {
+      console.log(chalk.gray("\n" + "-".repeat(50)));
+
+      console.log(
+        chalk.white(`🧠 Description: `) + chalk.dim(selected.description),
+      );
+
+      if (selected.input) {
+        console.log(chalk.cyan("📥 Input: ") + chalk.white(selected.input));
+      }
+
+      if (selected.output) {
+        console.log(chalk.green("📤 Output: ") + chalk.white(selected.output));
+      }
+
+      if (selected.impact) {
+        const impactColor = getImpactColor(selected.impact);
+
+        console.log(
+          chalk.white.bold("⚠ Impact: ") + impactColor(` ${selected.impact} `),
+        );
+      }
+    }
 
     console.log(chalk.gray("\n↑ ↓ navigate • ENTER select • q exit"));
   }
@@ -88,7 +185,7 @@ function createCLI({ tools, onSelect, onExit }) {
 
       if (key.name === "return") {
         process.stdin.removeListener("keypress", keypressHandler);
-        console.clear();
+        clearScreen();
         await handleSelect();
       }
 
@@ -133,7 +230,7 @@ function createCLI({ tools, onSelect, onExit }) {
     process.stdin.removeAllListeners("keypress"); // 🔥 EKLE
 
     function renderConfirm() {
-      console.clear();
+      clearScreen();
       printHeader();
 
       console.log(chalk.yellow("⚠️ " + message + "\n"));
@@ -158,7 +255,7 @@ function createCLI({ tools, onSelect, onExit }) {
 
       if (key.name === "return") {
         process.stdin.removeListener("keypress", handler);
-        console.clear();
+        clearScreen();
         callback(confirmIndex === 0);
       }
     };

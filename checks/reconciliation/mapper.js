@@ -4,8 +4,6 @@ function round(num) {
 
 function mapToReportFormat(results) {
   return results.map((r) => ({
-    type: "RECON",
-
     asin: r.asin,
     status: r.status,
 
