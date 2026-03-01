@@ -7,17 +7,28 @@ const { normalizeAmazonRow } = require("../../mappers/amazonRow.mapper");
 const { buildFlags } = require("./utils/flags");
 
 const { indexByAsin } = require("./core/indexer");
-const { compare } = require("./core/comparator");
+const {
+  compare,
+  getStockSeverity,
+  getPriceSeverity,
+} = require("./core/comparator");
 const { classify } = require("./core/classifier");
+
+const ACTIVE_STATUSES = ["ACTIVE"];
 
 function reconcile(syncroCsvText, amazonTxtText) {
   const syncroRaw = parseCSV(syncroCsvText);
   const amazonRaw = parseAmazonTxt(amazonTxtText);
 
-  const syncro = syncroRaw.map((r) => {
-    const n = normalizeSyncroRow(r);
-    return { ...n, flags: buildFlags(n) };
-  });
+  const syncro = syncroRaw
+    .map((r) => {
+      const n = normalizeSyncroRow(r);
+      return { ...n, flags: buildFlags(n) };
+    })
+    .filter((item) => ACTIVE_STATUSES.includes(item.storeProductStatus));
+
+  const excludedCount = syncroRaw.length - syncro.length;
+  console.log(`⚠️ Filtered out ${excludedCount} non-active products`);
 
   const amazon = amazonRaw.map((r) => {
     const n = normalizeAmazonRow(r);
@@ -48,10 +59,15 @@ function reconcile(syncroCsvText, amazonTxtText) {
     const diff = compare(s, a);
     const status = classify(diff, s, a);
 
+    const priceSeverity = getPriceSeverity(diff.priceDiff);
+    const stockSeverity = getStockSeverity(diff.quantityDiff);
+
     results.push({
       asin,
       status,
       diff,
+      priceSeverity,
+      stockSeverity,
       syncro: s,
       amazon: a,
     });

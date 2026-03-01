@@ -9,4 +9,24 @@ function compare(syncro, amazon) {
   };
 }
 
-module.exports = { compare };
+function getPriceSeverity(diff) {
+  const abs = Math.abs(diff);
+
+  if (abs === 0) return "MATCH";
+  if (abs < 1) return "LOW";
+  if (abs < 5) return "MEDIUM";
+  if (abs < 10) return "HIGH";
+  return "CRITICAL";
+}
+
+function getStockSeverity(diff) {
+  const abs = Math.abs(diff);
+
+  if (abs === 0) return "MATCH";
+  if (abs <= 2) return "LOW";
+  if (abs <= 5) return "MEDIUM";
+  if (abs <= 10) return "HIGH";
+  return "CRITICAL";
+}
+
+module.exports = { compare, getPriceSeverity, getStockSeverity };
