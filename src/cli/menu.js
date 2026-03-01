@@ -223,11 +223,9 @@ function createCLI({ tools, onSelect, onExit }) {
 
     process.stdin.on("keypress", handler);
   }
-  // 🔥 NEW: Arrow-based confirm prompt
   function confirm(message, callback) {
-    let confirmIndex = 0;
-
-    process.stdin.removeAllListeners("keypress"); // 🔥 EKLE
+    let confirmIndex = 0; // 0 = NO (default)
+    process.stdin.removeAllListeners("keypress");
 
     function renderConfirm() {
       clearScreen();
@@ -235,13 +233,17 @@ function createCLI({ tools, onSelect, onExit }) {
 
       console.log(chalk.yellow("⚠️ " + message + "\n"));
 
-      const yes =
-        confirmIndex === 0 ? chalk.bgGreen.black(" YES ") : chalk.gray(" YES ");
-
       const no =
-        confirmIndex === 1 ? chalk.bgRed.black(" NO ") : chalk.gray(" NO ");
+        confirmIndex === 0
+          ? chalk.bgRed.black.bold(" NO ")
+          : chalk.gray(" NO ");
 
-      console.log(`${yes}   ${no}`);
+      const yes =
+        confirmIndex === 1
+          ? chalk.bgGreen.black.bold(" YES ")
+          : chalk.gray(" YES ");
+
+      console.log(`${no} ${yes}`);
       console.log(chalk.gray("\n← → switch • ENTER select"));
     }
 
@@ -256,7 +258,7 @@ function createCLI({ tools, onSelect, onExit }) {
       if (key.name === "return") {
         process.stdin.removeListener("keypress", handler);
         clearScreen();
-        callback(confirmIndex === 0);
+        callback(confirmIndex === 1);
       }
     };
 
@@ -276,7 +278,7 @@ function createCLI({ tools, onSelect, onExit }) {
     start,
     waitReturn,
     ask,
-    confirm, // 👈 expose this
+    confirm,
   };
 }
 
