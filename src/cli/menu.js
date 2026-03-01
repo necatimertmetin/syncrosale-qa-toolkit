@@ -2,6 +2,25 @@ const readline = require("readline");
 const chalk = require("chalk").default;
 
 let keypressHandler = null;
+function sanitizePath(input) {
+  if (!input) return input;
+
+  let val = input.trim();
+
+  // 🔥 PowerShell "& " prefix kaldır
+  val = val.replace(/^&\s*/, "");
+
+  // 🔥 baştaki ve sondaki tüm quote'ları kaldır
+  val = val.replace(/^['"]+|['"]+$/g, "");
+
+  // 🔥 newline temizle
+  val = val.replace(/[\r\n]+/g, "");
+
+  // 🔥 escape edilmiş quote düzelt
+  val = val.replace(/\\"/g, '"');
+
+  return val;
+}
 
 function clearScreen() {
   console.clear();
@@ -270,7 +289,10 @@ function createCLI({ tools, onSelect, onExit }) {
 
     rl.question(question, (answer) => {
       process.stdin.setRawMode(true);
-      callback(answer);
+
+      const cleaned = sanitizePath(answer);
+
+      callback(cleaned);
     });
   }
 
