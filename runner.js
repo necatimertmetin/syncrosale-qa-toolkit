@@ -1,27 +1,27 @@
 require("dotenv").config();
 
-const { initAuth } = require("./auth");
+const { initAuth } = require("./src/auth");
 const {
   createRunFolder,
   writeJson,
   writeMarkdown,
   deleteAllReports,
   writeCSV,
-} = require("./report/reporter");
+} = require("./src/report/reporter");
 
-const { createCLI } = require("./cli/menu");
+const { createCLI } = require("./src/cli/menu");
 
 // tools
-const performance = require("./checks/performance");
-const reconciliation = require("./checks/reconciliation/run");
-const profitValidation = require("./checks/profitValidation/run");
-const buyableButNotActive = require("./checks/buyableButNotActive/run");
+const performance = require("./src/checks/performance");
+const reconciliation = require("./src/checks/reconciliation/run");
+const profitValidation = require("./src/checks/profitValidation/run");
+const buyableButNotActive = require("./src/checks/buyableButNotActive/run");
 
 // security
-const inputValidation = require("./checks/inputValidation");
-const authzIsolation = require("./checks/authzIsolation");
-const errorLeakage = require("./checks/errorLeakage");
-const rateLimit = require("./checks/rateLimit");
+const inputValidation = require("./src/checks/inputValidation");
+const authzIsolation = require("./src/checks/authzIsolation");
+const errorLeakage = require("./src/checks/errorLeakage");
+const rateLimit = require("./src/checks/rateLimit");
 
 const tools = [
   {
