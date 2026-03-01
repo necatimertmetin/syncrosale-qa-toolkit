@@ -54,12 +54,10 @@ function buildSummary(results) {
     }
   });
 
-  // 🔹 BASIC METRICS
   summary.mismatch =
     summary.priceMismatch + summary.stockMismatch + summary.bothMismatch;
 
-  const calcRate = (value, total) =>
-    total > 0 ? ((value / total) * 100).toFixed(2) + "%" : "0%";
+  const calcRate = (v, t) => (t > 0 ? ((v / t) * 100).toFixed(2) + "%" : "0%");
 
   summary.matchRate = calcRate(summary.match, summary.total);
   summary.mismatchRate = calcRate(summary.mismatch, summary.total);
@@ -70,7 +68,6 @@ function buildSummary(results) {
   const totalPriceSeverity = ps.LOW + ps.MEDIUM + ps.HIGH + ps.CRITICAL;
   const totalStockSeverity = ss.LOW + ss.MEDIUM + ss.HIGH + ss.CRITICAL;
 
-  // 🔹 FLATTEN + RATES
   ["LOW", "MEDIUM", "HIGH", "CRITICAL"].forEach((lvl) => {
     summary[`priceSeverity_${lvl}`] = ps[lvl];
     summary[`stockSeverity_${lvl}`] = ss[lvl];
@@ -82,23 +79,30 @@ function buildSummary(results) {
       ps[lvl],
       summary.total,
     );
-
     summary[`stockSeverityGlobalRate_${lvl}`] = calcRate(
       ss[lvl],
       summary.total,
     );
   });
 
-  // 🔹 HELPER
-  const toNumber = (v) => Number(String(v).replace("%", ""));
+  // 🔥 TOP WORST ASINS
+  const calculateScore = (r) => {
+    if (!r.diff) return 0;
 
-  const priceCriticalGlobal = toNumber(
-    summary.priceSeverityGlobalRate_CRITICAL,
-  );
+    const price = Math.abs(r.diff.priceDiff || 0);
+    const stock = Math.abs(r.diff.quantityDiff || 0);
 
-  const stockCriticalGlobal = toNumber(
-    summary.stockSeverityGlobalRate_CRITICAL,
-  );
+    return price + stock * 2;
+  };
+
+  const worst = results
+    .filter((r) => r.diff)
+    .map((r) => ({
+      ...r,
+      score: calculateScore(r),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
 
   // 🔥 MARKDOWN REPORT
   const lines = [];
@@ -159,29 +163,59 @@ function buildSummary(results) {
 
   lines.push("\n---\n");
 
-  // 🔥 PRICE INSIGHT (GLOBAL BASED)
-  if (priceCriticalGlobal > 5) {
+  // 🔥 TOP WORST LIST (FIXED RENDER)
+  lines.push("## 🚨 Top 10 Worst ASINs\n");
+
+  worst.forEach((r, i) => {
+    const parts = [];
+
+    if (r.priceSeverity !== "MATCH") {
+      parts.push(
+        `PRICE: ${r.syncro?.price ?? "-"} → ${r.amazon?.price ?? "-"} (Δ ${r.diff.priceDiff.toFixed(2)})`,
+      );
+    }
+
+    if (r.stockSeverity !== "MATCH") {
+      parts.push(
+        `STOCK: ${r.syncro?.quantity ?? "-"} → ${r.amazon?.quantity ?? "-"} (Δ ${r.diff.quantityDiff})`,
+      );
+    }
+
+    lines.push(`${i + 1}. ${r.asin} [${parts.join(" | ")}]`);
+  });
+
+  lines.push("\n---\n");
+
+  // 🔥 SMART INSIGHT (GLOBAL BASED)
+  const globalCritical = Number(
+    summary.priceSeverityGlobalRate_CRITICAL.replace("%", ""),
+  );
+
+  if (globalCritical > 5) {
     lines.push(
-      `🚨 High critical price impact (${summary.priceSeverityGlobalRate_CRITICAL}) → pricing sync broken`,
+      `🚨 High price impact (${summary.priceSeverityGlobalRate_CRITICAL}) → large portion of catalog affected`,
     );
-  } else if (priceCriticalGlobal > 1) {
+  } else if (globalCritical > 1) {
     lines.push(
-      `⚠️ Noticeable price impact (${summary.priceSeverityGlobalRate_CRITICAL})`,
+      `⚠️ Moderate price impact (${summary.priceSeverityGlobalRate_CRITICAL})`,
     );
   } else {
     lines.push(
-      `ℹ️ Low critical price impact (${summary.priceSeverityGlobalRate_CRITICAL})`,
+      `ℹ️ Low price impact (${summary.priceSeverityGlobalRate_CRITICAL})`,
     );
   }
 
-  // 🔥 STOCK INSIGHT (GLOBAL BASED)
-  if (stockCriticalGlobal > 5) {
+  const stockCritical = Number(
+    summary.stockSeverityGlobalRate_CRITICAL.replace("%", ""),
+  );
+
+  if (stockCritical > 5) {
     lines.push(
-      `🚨 High critical stock impact (${summary.stockSeverityGlobalRate_CRITICAL}) → inventory sync broken`,
+      `🚨 High stock impact (${summary.stockSeverityGlobalRate_CRITICAL})`,
     );
-  } else if (stockCriticalGlobal > 1) {
+  } else if (stockCritical > 1) {
     lines.push(
-      `⚠️ Noticeable stock impact (${summary.stockSeverityGlobalRate_CRITICAL})`,
+      `⚠️ Moderate stock impact (${summary.stockSeverityGlobalRate_CRITICAL})`,
     );
   } else {
     lines.push(
@@ -189,23 +223,10 @@ function buildSummary(results) {
     );
   }
 
-  // 🔥 BONUS (hangisi daha kötü)
-  if (stockCriticalGlobal > priceCriticalGlobal) {
-    lines.push("📦 Stock mismatches dominate → inventory sync öncelikli");
-  } else if (priceCriticalGlobal > stockCriticalGlobal) {
-    lines.push("💰 Price mismatches dominate → pricing sync öncelikli");
-  }
-
-  // 🔥 missing insight
-  if (summary.missing > summary.total * 0.3) {
-    lines.push(
-      `⚠️ High missing rate (${calcRate(summary.missing, summary.total)}) → mapping/filter issue olabilir`,
-    );
-  }
-
   lines.push("");
 
-  summary.prettyReport = lines.join("\n");
+  // 🔥 sadece console/debug için (reporter'a girmez)
+  summary._prettyReport = lines.join("\n");
 
   delete summary._priceSeverity;
   delete summary._stockSeverity;
