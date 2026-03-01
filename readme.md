@@ -63,7 +63,7 @@ syncrosale-qa-toolkit/
 
 ```bash
 git clone <repo-url>
-cd syncro-qa-toolkit
+cd syncrosale-qa-toolkit
 npm install
 ```
 
