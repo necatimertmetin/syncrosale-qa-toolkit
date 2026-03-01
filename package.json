@@ -1,0 +1,20 @@
+{
+  "name": "security-harness",
+  "version": "1.0.0",
+  "main": "api.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node runner.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.13.6",
+    "chalk": "^5.6.2",
+    "dotenv": "^17.3.1",
+    "ora": "^9.3.0",
+    "p-limit": "^7.3.0"
+  }
+}
