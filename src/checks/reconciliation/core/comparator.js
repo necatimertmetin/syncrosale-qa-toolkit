@@ -1,11 +1,22 @@
 const { isEqual } = require("../utils/helpers");
 
 function compare(syncro, amazon) {
+  const priceDiff = syncro.price - amazon.price;
+
+  const quantityDiff = syncro.quantity - amazon.quantity;
+
+  const priceMatch = isEqual(syncro.price, amazon.price);
+
+  // 🔥 custom business rule
+  const quantityMatch =
+    syncro.quantity === amazon.quantity ||
+    (syncro.quantity === 20 && amazon.quantity >= 20);
+
   return {
-    priceDiff: syncro.price - amazon.price,
-    quantityDiff: syncro.quantity - amazon.quantity,
-    priceMatch: isEqual(syncro.price, amazon.price),
-    quantityMatch: syncro.quantity === amazon.quantity,
+    priceDiff,
+    quantityDiff,
+    priceMatch,
+    quantityMatch,
   };
 }
 
