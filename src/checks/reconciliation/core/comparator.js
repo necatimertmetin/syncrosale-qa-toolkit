@@ -40,4 +40,21 @@ function getStockSeverity(diff) {
   return "CRITICAL";
 }
 
-module.exports = { compare, getPriceSeverity, getStockSeverity };
+function comparePriceOnly(a, b) {
+  const priceDiff = a.price - b.price;
+
+  return {
+    priceDiff,
+    quantityDiff: null,
+
+    priceMatch: Math.abs(priceDiff) < 0.01,
+    quantityMatch: true, // 🔥 stock her zaman match
+  };
+}
+
+module.exports = {
+  compare,
+  getPriceSeverity,
+  getStockSeverity,
+  comparePriceOnly,
+};

@@ -7,8 +7,7 @@ function normalizeSellerflashRow(row) {
   return {
     asin: cleanString(row.ASIN),
 
-    // 🔥 önemli: doğru field
-    price: toNumber(row["Price(USD)"] || row["Price"]),
+    price: toNumber(row["Price"]),
 
     // ❌ yok → default
     quantity: 0,

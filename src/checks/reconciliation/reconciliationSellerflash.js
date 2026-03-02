@@ -9,11 +9,7 @@ const { normalizeAmazonRow } = require("../../mappers/amazonRow.mapper");
 const { buildFlags } = require("./utils/flags");
 
 const { indexByAsin } = require("./core/indexer");
-const {
-  compare,
-  getStockSeverity,
-  getPriceSeverity,
-} = require("./core/comparator");
+const { comparePriceOnly, getPriceSeverity } = require("./core/comparator");
 const { classify } = require("./core/classifier");
 
 function reconcile(sellerflashCsvText, amazonTxtText) {
@@ -52,7 +48,7 @@ function reconcile(sellerflashCsvText, amazonTxtText) {
       return;
     }
 
-    const diff = compare(s, a);
+    const diff = comparePriceOnly(s, a);
     const status = classify(diff, s, a);
 
     results.push({
@@ -60,7 +56,6 @@ function reconcile(sellerflashCsvText, amazonTxtText) {
       status,
       diff,
       priceSeverity: getPriceSeverity(diff.priceDiff),
-      stockSeverity: getStockSeverity(diff.quantityDiff),
       sellerflash: s,
       amazon: a,
     });
