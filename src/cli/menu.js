@@ -2,21 +2,14 @@ const readline = require("readline");
 const chalk = require("chalk").default;
 
 let keypressHandler = null;
+
 function sanitizePath(input) {
   if (!input) return input;
 
   let val = input.trim();
-
-  // 🔥 PowerShell "& " prefix kaldır
   val = val.replace(/^&\s*/, "");
-
-  // 🔥 baştaki ve sondaki tüm quote'ları kaldır
   val = val.replace(/^['"]+|['"]+$/g, "");
-
-  // 🔥 newline temizle
   val = val.replace(/[\r\n]+/g, "");
-
-  // 🔥 escape edilmiş quote düzelt
   val = val.replace(/\\"/g, '"');
 
   return val;
@@ -25,6 +18,18 @@ function sanitizePath(input) {
 function clearScreen() {
   console.clear();
 }
+
+function removeKeypressHandler(handler) {
+  if (!handler) return;
+  process.stdin.removeListener("keypress", handler);
+}
+
+function ensureRawMode(on = true) {
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(on);
+  }
+}
+
 function getImpactColor(impact) {
   switch (impact) {
     case "HIGH":
@@ -60,38 +65,16 @@ function createCLI({ tools, onSelect, onExit }) {
 
   let selectedIndex = 0;
 
-  readline.emitKeypressEvents(process.stdin, rl);
-  if (process.stdin.isTTY) process.stdin.setRawMode(true);
+  readline.emitKeypressEvents(process.stdin);
+  ensureRawMode(true);
 
-  // GLOBAL CTRL+C HANDLER
-  process.on("SIGINT", async () => {
-    console.log(chalk.yellow("\n👋 Force exit (cleaning up...)"));
+  // 🔥 CTRL+C GLOBAL
+  process.on("SIGINT", () => {
+    console.log(chalk.yellow("\n👋 Force exit"));
 
-    try {
-      // 🔥 stdin raw mode kapat
-      if (process.stdin.isTTY) {
-        process.stdin.setRawMode(false);
-      }
-
-      // 🔥 tüm listener'ları temizle
-      process.stdin.removeAllListeners("keypress");
-
-      // 🔥 readline kapat
-      rl.close();
-
-      // 🔥 stdout flush (çok kritik)
-      await new Promise((resolve) => process.stdout.write("", resolve));
-
-      // 🔥 stderr flush
-      await new Promise((resolve) => process.stderr.write("", resolve));
-
-      // 🔥 GC (varsa)
-      if (global.gc) {
-        global.gc();
-      }
-    } catch (err) {
-      console.log("Cleanup error:", err.message);
-    }
+    ensureRawMode(false);
+    removeKeypressHandler(keypressHandler);
+    rl.close();
 
     onExit?.();
     process.exit(0);
@@ -121,7 +104,6 @@ function createCLI({ tools, onSelect, onExit }) {
       const isSelected = i === selectedIndex;
       const icon = getToolIcon(tool.name);
 
-      // 🔥 SECTION HEADER
       if (tool.section !== lastSection) {
         lastSection = tool.section;
 
@@ -141,10 +123,9 @@ function createCLI({ tools, onSelect, onExit }) {
       }
     });
 
-    // 🔥 TOOL DETAILS (aynı kalıyor)
     const selected = tools[selectedIndex];
 
-    if (selected && selected.description) {
+    if (selected?.description) {
       console.log(chalk.gray("\n" + "-".repeat(50)));
 
       console.log(
@@ -182,12 +163,10 @@ function createCLI({ tools, onSelect, onExit }) {
   }
 
   function start() {
-    renderMenu();
+    ensureRawMode(true);
+    removeKeypressHandler(keypressHandler);
 
-    // 🔥 önce eski listener'ı temizle
-    if (keypressHandler) {
-      process.stdin.removeListener("keypress", keypressHandler);
-    }
+    renderMenu();
 
     keypressHandler = async (_, key) => {
       if (key.name === "up") {
@@ -203,13 +182,13 @@ function createCLI({ tools, onSelect, onExit }) {
       }
 
       if (key.name === "return") {
-        process.stdin.removeListener("keypress", keypressHandler);
+        removeKeypressHandler(keypressHandler);
         clearScreen();
         await handleSelect();
       }
 
-      if (key.name === "q" || (key.ctrl && key.name === "c")) {
-        console.log(chalk.yellow("👋 Exiting..."));
+      if (key.name === "q") {
+        ensureRawMode(false);
         rl.close();
         onExit?.();
       }
@@ -221,30 +200,29 @@ function createCLI({ tools, onSelect, onExit }) {
   function waitReturn() {
     console.log(chalk.gray("\n↩ Press ENTER to return menu..."));
 
-    process.stdin.removeAllListeners("keypress");
+    removeKeypressHandler(keypressHandler);
 
-    const handler = (_, key) => {
+    keypressHandler = (_, key) => {
       if (key.name === "return") {
-        process.stdin.removeListener("keypress", handler);
+        removeKeypressHandler(keypressHandler);
         selectedIndex = 0;
         start();
       }
 
-      // 🔥 FIX: CTRL+C handling
       if (key.ctrl && key.name === "c") {
-        console.log(chalk.yellow("\n👋 Exiting..."));
-
-        process.stdin.setRawMode(false); // 🔥 kritik
+        ensureRawMode(false);
         rl.close();
         process.exit(0);
       }
     };
 
-    process.stdin.on("keypress", handler);
+    process.stdin.on("keypress", keypressHandler);
   }
+
   function confirm(message, callback) {
-    let confirmIndex = 0; // 0 = NO (default)
-    process.stdin.removeAllListeners("keypress");
+    let confirmIndex = 0;
+
+    removeKeypressHandler(keypressHandler);
 
     function renderConfirm() {
       clearScreen();
@@ -268,30 +246,29 @@ function createCLI({ tools, onSelect, onExit }) {
 
     renderConfirm();
 
-    const handler = (_, key) => {
+    keypressHandler = (_, key) => {
       if (key.name === "left" || key.name === "right") {
         confirmIndex = confirmIndex === 0 ? 1 : 0;
         renderConfirm();
       }
 
       if (key.name === "return") {
-        process.stdin.removeListener("keypress", handler);
+        removeKeypressHandler(keypressHandler);
         clearScreen();
         callback(confirmIndex === 1);
       }
     };
 
-    process.stdin.on("keypress", handler);
+    process.stdin.on("keypress", keypressHandler);
   }
 
   function ask(question, callback) {
-    process.stdin.setRawMode(false);
+    ensureRawMode(false);
 
     rl.question(question, (answer) => {
-      process.stdin.setRawMode(true);
+      ensureRawMode(true);
 
       const cleaned = sanitizePath(answer);
-
       callback(cleaned);
     });
   }
