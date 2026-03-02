@@ -1,10 +1,16 @@
 function parseCSV(text) {
   const lines = text.split("\n").filter(Boolean);
 
-  const headers = lines[0].split(",").map((h) => h.replace(/"/g, "").trim());
+  const isQuoted = lines[0].includes('"');
+
+  const split = isQuoted
+    ? (line) => line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+    : (line) => line.split(",");
+
+  const headers = split(lines[0]).map((h) => h.replace(/"/g, "").trim());
 
   return lines.slice(1).map((line) => {
-    const values = line.split(",");
+    const values = split(line);
 
     const obj = {};
     headers.forEach((h, i) => {
@@ -14,5 +20,4 @@ function parseCSV(text) {
     return obj;
   });
 }
-
 module.exports = { parseCSV };

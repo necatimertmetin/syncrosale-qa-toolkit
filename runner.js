@@ -14,6 +14,7 @@ const { createCLI } = require("./src/cli/menu");
 // tools
 const performance = require("./src/checks/performance");
 const reconciliation = require("./src/checks/reconciliation/run");
+const reconciliationSellerflash = require("./src/checks/reconciliation/runSellerflash");
 const profitValidation = require("./src/checks/profitValidation/run");
 const buyableButNotActive = require("./src/checks/buyableButNotActive/run");
 
@@ -44,7 +45,15 @@ const tools = [
     impact: "HIGH",
     run: reconciliation.run,
   },
-
+  {
+    section: "DATA",
+    name: "Reconciliation (Sellerflash vs Amazon)",
+    description: "Compares Sellerflash CSV and Amazon TXT data",
+    input: "Amazon TXT + Sellerflash CSV",
+    output: "Mismatch report + summary",
+    impact: "HIGH",
+    run: reconciliationSellerflash.run,
+  },
   {
     section: "DATA",
     name: "Profit Calculation Validation",
