@@ -73,6 +73,15 @@ const tools = [
     impact: "HIGH",
     run: orderAudit.run,
   },
+  {
+    section: "DATA",
+    name: "Product Audit",
+    description: "Analyzes product pricing, margin and category performance",
+    input: "Product CSV",
+    output: "Insights + breakdowns",
+    impact: "HIGH",
+    run: require("./src/checks/productAudit/run").run,
+  },
 
   // 🔐 SECURITY
   {
@@ -175,7 +184,8 @@ const cli = createCLI({
         if (
           selected.name.includes("Reconciliation") ||
           selected.name.includes("Buyable") ||
-          selected.name.includes("Order Audit")
+          selected.name.includes("Order Audit") ||
+          selected.name.includes("Product Audit")
         ) {
           await writeCSV(dir, "report.csv", result);
         }

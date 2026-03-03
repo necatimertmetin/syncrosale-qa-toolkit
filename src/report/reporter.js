@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { OUT_DIR } = require("../config");
 
+// ---------------- FORMAT HELPERS ----------------
 function formatValue(val) {
   if (val === null || val === undefined) return "";
 
@@ -10,10 +11,20 @@ function formatValue(val) {
   }
 
   if (typeof val === "object") {
-    return ""; // object basma
+    return ""; // object basma (renderer handle eder)
   }
 
-  return String(val).replace(/\n/g, " ").slice(0, 50);
+  return String(val).replace(/\n/g, " ").slice(0, 80);
+}
+
+function formatPercent(count, total) {
+  if (!total) return "0%";
+
+  const raw = (count / total) * 100;
+
+  if (raw > 0 && raw < 0.01) return "<0.01%";
+
+  return `${raw.toFixed(2)}%`;
 }
 
 function formatDate(d = new Date()) {
@@ -26,35 +37,31 @@ function formatDate(d = new Date()) {
 
   return `${date} ${time} (${tz})`;
 }
+
 function getTimestamp() {
   const d = new Date();
-
   const pad = (n) => String(n).padStart(2, "0");
 
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
     d.getDate(),
   )}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 }
-function deleteAllReports() {
-  const fs = require("fs");
 
+// ---------------- FILE OPS ----------------
+function deleteAllReports() {
   if (!fs.existsSync(OUT_DIR)) {
     console.log("📁 No reports folder found");
     return;
   }
 
   fs.rmSync(OUT_DIR, { recursive: true, force: true });
-
   console.log("🗑️ All reports deleted");
 }
 
 function createRunFolder(toolName) {
   const timestamp = getTimestamp();
-
   const dir = path.join(OUT_DIR, toolName, timestamp);
-
   fs.mkdirSync(dir, { recursive: true });
-
   return dir;
 }
 
@@ -62,8 +69,39 @@ function writeJson(dir, filename, data) {
   fs.writeFileSync(path.join(dir, filename), JSON.stringify(data, null, 2));
 }
 
+// ---------------- INSIGHT ENGINE ----------------
+function buildInsights(summary) {
+  const insights = [];
+
+  const m = summary.marginDistribution;
+
+  if (m.EXCELLENT?.rate > 90) {
+    insights.push(
+      "⚠️ Most products have extremely high margin → possible cost/price data issue",
+    );
+  }
+
+  if (summary.gold?.rate > 30) {
+    insights.push("🟢 High ratio of Gold Products → catalog quality is strong");
+  }
+
+  if (summary.stockHealth?.deadStock?.rate > 5) {
+    insights.push(
+      "📦 Dead stock ratio is high → potential overstock / low demand products",
+    );
+  }
+
+  if (!insights.length) {
+    insights.push("✅ No major anomalies detected");
+  }
+
+  return insights;
+}
+
+// ---------------- MARKDOWN ----------------
 function writeMarkdown(dir, filename, results, title = "QA Report") {
   const lines = [];
+  const customRender = results.__renderer;
 
   lines.push(`# ${title}`);
   lines.push(`Generated: ${formatDate()}`);
@@ -75,22 +113,35 @@ function writeMarkdown(dir, filename, results, title = "QA Report") {
     return;
   }
 
-  // 🔥 SUMMARY
   const summary = results.find((r) => r.type === "SUMMARY");
 
+  // 🔥 INSIGHTS (üstte göster)
   if (summary) {
-    lines.push("## 📊 Summary\n");
-    lines.push("| Metric | Value |");
-    lines.push("|--------|-------|");
+    const insights = buildInsights(summary);
 
-    Object.entries(summary).forEach(([k, v]) => {
-      lines.push(`| ${k} | ${v} |`);
-    });
-
+    lines.push("## 🧠 Insights\n");
+    insights.forEach((i) => lines.push(`- ${i}`));
     lines.push("\n---\n");
   }
 
-  // 🔥 DATA
+  // 🔥 CUSTOM RENDER
+  if (summary) {
+    if (customRender) {
+      customRender(summary, lines, results);
+    } else {
+      lines.push("## 📊 Summary\n");
+      lines.push("| Metric | Value |");
+      lines.push("|--------|-------|");
+
+      Object.entries(summary).forEach(([k, v]) => {
+        lines.push(`| ${k} | ${formatValue(v)} |`);
+      });
+
+      lines.push("\n---\n");
+    }
+  }
+
+  // 🔥 SAMPLE DATA
   const data = results.filter((r) => r.type !== "SUMMARY");
 
   const MAX_ROWS = 50;
@@ -111,7 +162,6 @@ function writeMarkdown(dir, filename, results, title = "QA Report") {
 
     for (const item of sample) {
       const row = columns.map((col) => formatValue(item[col]));
-
       lines.push(`| ${row.join(" | ")} |`);
     }
   }
@@ -122,6 +172,8 @@ function writeMarkdown(dir, filename, results, title = "QA Report") {
 
   fs.writeFileSync(path.join(dir, filename), lines.join("\n"));
 }
+
+// ---------------- CSV ----------------
 function writeCSV(dir, filename, results) {
   return new Promise((resolve, reject) => {
     if (!results?.length) return resolve();
@@ -139,7 +191,6 @@ function writeCSV(dir, filename, results) {
     data.forEach((r) => Object.keys(r).forEach((k) => keys.add(k)));
     const columns = Array.from(keys);
 
-    // header
     stream.write(columns.join(",") + "\n");
 
     for (const row of data) {
@@ -161,9 +212,7 @@ function writeCSV(dir, filename, results) {
       resolve();
     });
 
-    stream.on("error", (err) => {
-      reject(err);
-    });
+    stream.on("error", (err) => reject(err));
   });
 }
 
