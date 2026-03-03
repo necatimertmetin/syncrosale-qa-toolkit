@@ -3,6 +3,7 @@ const { getWithAuth } = require("../api");
 const endpoints = [
   "/store/1/product/detailed2?page=0&size=100",
   "/store/1/order/optimized?page=0&size=100",
+  "/store/1/notification-mail?page=0&size=100",
 ];
 
 function formatDuration(ms) {

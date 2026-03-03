@@ -16,7 +16,7 @@ const performance = require("./src/checks/performance");
 const reconciliation = require("./src/checks/reconciliation/run");
 const profitValidation = require("./src/checks/profitValidation/run");
 const buyableButNotActive = require("./src/checks/buyableButNotActive/run");
-
+const orderAudit = require("./src/checks/orderAudit/run");
 // security
 const inputValidation = require("./src/checks/inputValidation");
 const authzIsolation = require("./src/checks/authzIsolation");
@@ -63,6 +63,15 @@ const tools = [
     output: "ASIN list",
     impact: "MEDIUM",
     run: buyableButNotActive.run,
+  },
+  {
+    section: "DATA",
+    name: "Order Audit",
+    description: "Runs anomaly checks on order CSV",
+    input: "CSV file path",
+    output: "Anomaly report + breakdown",
+    impact: "HIGH",
+    run: orderAudit.run,
   },
 
   // 🔐 SECURITY
@@ -165,7 +174,8 @@ const cli = createCLI({
         writeMarkdown(dir, "report.md", result, selected.name);
         if (
           selected.name.includes("Reconciliation") ||
-          selected.name.includes("Buyable")
+          selected.name.includes("Buyable") ||
+          selected.name.includes("Order Audit")
         ) {
           await writeCSV(dir, "report.csv", result);
         }

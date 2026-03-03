@@ -49,6 +49,7 @@ function getToolIcon(name) {
   if (name.includes("Performance")) return "⚡ ";
   if (name.includes("Reconciliation")) return "🔄 ";
   if (name.includes("Profit")) return "💰 ";
+  if (name.includes("Order")) return "🧾 ";
   if (name.includes("Buyable")) return "📦 ";
   if (name.includes("Security")) return "🛡️ ";
   if (name.includes("Rate")) return "🚦 ";
