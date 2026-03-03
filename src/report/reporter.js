@@ -75,7 +75,7 @@ function buildInsights(summary) {
 
   const m = summary.marginDistribution;
 
-  if (m.EXCELLENT?.rate > 90) {
+  if (m?.EXCELLENT?.rate > 90) {
     insights.push(
       "⚠️ Most products have extremely high margin → possible cost/price data issue",
     );
