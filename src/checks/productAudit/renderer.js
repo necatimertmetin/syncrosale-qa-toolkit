@@ -64,36 +64,6 @@ function render(summary, lines, allResults = []) {
   lines.push("- ⚪ **UNKNOWN**: invalid / missing data");
   lines.push("");
 
-  // ---------------- ANOMALIES ----------------
-  lines.push("### 🚨 Anomalies");
-  lines.push("| Type | Count |");
-  lines.push("|------|-------|");
-
-  Object.entries(summary.anomalies).forEach(([k, v]) => {
-    lines.push(`| ${k} | ${v} |`);
-  });
-
-  lines.push("");
-
-  // 🔥 DETAIL TABLE (WITH SEVERITY)
-  const anomalyRows = allResults
-    .filter((r) => r.type?.startsWith("ANOMALY"))
-    .sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
-
-  if (anomalyRows.length) {
-    lines.push("#### 🔍 Anomaly Details (Top 20)");
-    lines.push("| Type | Severity | ASIN | Price | Cost | Margin |");
-    lines.push("|------|----------|------|-------|------|--------|");
-
-    anomalyRows.slice(0, 20).forEach((a) => {
-      lines.push(
-        `| ${a.type} | ${getAnomalySeverity(a.type)} | ${a.asin ?? "-"} | ${a.price ?? "-"} | ${a.cost ?? "-"} | ${a.margin ?? "-"} |`,
-      );
-    });
-
-    lines.push("");
-  }
-
   // ---------------- DATA QUALITY ----------------
   lines.push("### 🧪 Data Quality");
   lines.push("| Metric | Value |");
@@ -214,6 +184,36 @@ function render(summary, lines, allResults = []) {
     lines.push("## 🧠 Insights\n");
     insights.forEach((i) => lines.push(`- ${i}`));
     lines.push("\n---\n");
+  }
+
+  // ---------------- ANOMALIES ----------------
+  lines.push("### 🚨 Anomalies");
+  lines.push("| Type | Count |");
+  lines.push("|------|-------|");
+
+  Object.entries(summary.anomalies).forEach(([k, v]) => {
+    lines.push(`| ${k} | ${v} |`);
+  });
+
+  lines.push("");
+
+  // 🔥 DETAIL TABLE (WITH SEVERITY)
+  const anomalyRows = allResults
+    .filter((r) => r.type?.startsWith("ANOMALY"))
+    .sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
+
+  if (anomalyRows.length) {
+    lines.push("#### 🔍 Anomaly Details (Top 20)");
+    lines.push("| Type | Severity | ASIN | Price | Cost | Margin |");
+    lines.push("|------|----------|------|-------|------|--------|");
+
+    anomalyRows.slice(0, 20).forEach((a) => {
+      lines.push(
+        `| ${a.type} | ${getAnomalySeverity(a.type)} | ${a.asin ?? "-"} | ${a.price ?? "-"} | ${a.cost ?? "-"} | ${a.margin ?? "-"} |`,
+      );
+    });
+
+    lines.push("");
   }
 }
 
