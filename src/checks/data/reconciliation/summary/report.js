@@ -98,6 +98,25 @@ function buildMarkdown(summary, worst) {
 
   lines.push("\n---\n");
 
+  lines.push("## ⚠️ Mismatch Breakdown\n");
+
+  lines.push("| Type | Count | % of Mismatches | % of Catalog |");
+  lines.push("|------|------|------------------|---------------|");
+
+  lines.push(
+    `| Price Only | ${summary.priceMismatch} | ${summary.priceMismatchRate} | ${summary.priceMismatchGlobalRate} |`,
+  );
+
+  lines.push(
+    `| Stock Only | ${summary.stockMismatch} | ${summary.stockMismatchRate} | ${summary.stockMismatchGlobalRate} |`,
+  );
+
+  lines.push(
+    `| Price + Stock | ${summary.bothMismatch} | ${summary.bothMismatchRate} | ${summary.bothMismatchGlobalRate} |`,
+  );
+
+  lines.push("\n---\n");
+
   // CATALOG COVERAGE
 
   lines.push("## 🧾 Catalog Coverage\n");

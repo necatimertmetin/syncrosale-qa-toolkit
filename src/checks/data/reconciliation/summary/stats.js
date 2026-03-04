@@ -6,6 +6,8 @@ function computeStats(summary) {
   summary.mismatch =
     summary.priceMismatch + summary.stockMismatch + summary.bothMismatch;
 
+  // ---------------- BASIC RATES ----------------
+
   summary.matchRate = calcRate(summary.match, summary.total);
   summary.mismatchRate = calcRate(summary.mismatch, summary.total);
 
@@ -19,11 +21,35 @@ function computeStats(summary) {
     summary.total,
   );
 
+  // ---------------- MISMATCH BREAKDOWN ----------------
+
+  summary.priceMismatchRate = calcRate(summary.priceMismatch, summary.mismatch);
+
+  summary.stockMismatchRate = calcRate(summary.stockMismatch, summary.mismatch);
+
+  summary.bothMismatchRate = calcRate(summary.bothMismatch, summary.mismatch);
+
+  summary.priceMismatchGlobalRate = calcRate(
+    summary.priceMismatch,
+    summary.total,
+  );
+
+  summary.stockMismatchGlobalRate = calcRate(
+    summary.stockMismatch,
+    summary.total,
+  );
+
+  summary.bothMismatchGlobalRate = calcRate(
+    summary.bothMismatch,
+    summary.total,
+  );
+
+  // ---------------- SEVERITY ----------------
+
   const ps = summary._priceSeverity;
   const ss = summary._stockSeverity;
 
   const totalPriceSeverity = ps.LOW + ps.MEDIUM + ps.HIGH + ps.CRITICAL;
-
   const totalStockSeverity = ss.LOW + ss.MEDIUM + ss.HIGH + ss.CRITICAL;
 
   ["LOW", "MEDIUM", "HIGH", "CRITICAL"].forEach((lvl) => {
@@ -31,7 +57,6 @@ function computeStats(summary) {
     summary[`stockSeverity_${lvl}`] = ss[lvl];
 
     summary[`priceSeverityRate_${lvl}`] = calcRate(ps[lvl], totalPriceSeverity);
-
     summary[`stockSeverityRate_${lvl}`] = calcRate(ss[lvl], totalStockSeverity);
 
     summary[`priceSeverityGlobalRate_${lvl}`] = calcRate(

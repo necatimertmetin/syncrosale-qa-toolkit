@@ -96,10 +96,6 @@ function buildInsights(summary) {
     );
   }
 
-  if (!insights.length) {
-    insights.push("✅ No major anomalies detected");
-  }
-
   return insights;
 }
 
