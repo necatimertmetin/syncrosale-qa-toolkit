@@ -1,4 +1,4 @@
-const { getWithAuth } = require("../../api");
+const { getWithAuth } = require("../../../api");
 const { audit } = require("./productAudit");
 const { render } = require("./renderer");
 

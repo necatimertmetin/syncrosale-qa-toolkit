@@ -1,5 +1,5 @@
-const { parseCSV } = require("../../parsers/csvParser");
-const { normalizeSyncroRow } = require("../../mappers/syncroRow.mapper");
+const { parseCSV } = require("../../../parsers/csvParser");
+const { normalizeSyncroRow } = require("../../../mappers/syncroRow.mapper");
 
 function findBuyableButNotActive(csvText) {
   const rows = parseCSV(csvText).map(normalizeSyncroRow);

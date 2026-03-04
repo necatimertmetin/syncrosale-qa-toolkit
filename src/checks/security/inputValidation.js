@@ -1,5 +1,5 @@
-const { PRODUCT_PATH, STORE_ID } = require("../config");
-const { getWithAuth } = require("../api");
+const { PRODUCT_PATH, STORE_ID } = require("../../config");
+const { getWithAuth } = require("../../api");
 
 // Benign: sadece edge-case / invalid format (SQLi/XSS yok)
 const payloads = [

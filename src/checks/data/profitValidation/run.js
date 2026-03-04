@@ -1,4 +1,4 @@
-const { getWithAuth } = require("../../api");
+const { getWithAuth } = require("../../../api");
 const { calculateProfit } = require("./profitCalculation");
 
 async function run(cli) {

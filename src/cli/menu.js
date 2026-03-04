@@ -16,7 +16,7 @@ function sanitizePath(input) {
 }
 
 function clearScreen() {
-  console.clear();
+  process.stdout.write("\x1b[2J\x1b[3J\x1b[H");
 }
 
 function removeKeypressHandler(handler) {
@@ -56,7 +56,48 @@ function getToolIcon(name) {
   if (name.includes("Rate")) return "🚦 ";
   if (name.includes("Error")) return "🐞 ";
   if (name.includes("Auth")) return "🔐 ";
+  if (name.includes("Account")) return "👤 ";
+  if (name.includes("Clear All Reports")) return "🗑️ ";
   return "🔹 ";
+}
+function colorTag(tag) {
+  switch (tag) {
+    case "critical":
+      return chalk.bgRed.white.bold(` ${tag} `);
+
+    case "finance":
+      return chalk.yellowBright(`[${tag}]`);
+
+    case "catalog":
+      return chalk.cyanBright(`[${tag}]`);
+
+    case "pricing":
+      return chalk.magentaBright(`[${tag}]`);
+
+    case "margin":
+      return chalk.greenBright(`[${tag}]`);
+
+    case "orders":
+      return chalk.blueBright(`[${tag}]`);
+
+    case "latency":
+      return chalk.yellow(`[${tag}]`);
+
+    case "security":
+      return chalk.redBright(`[${tag}]`);
+
+    case "traffic":
+      return chalk.magenta(`[${tag}]`);
+
+    case "validation":
+      return chalk.green(`[${tag}]`);
+
+    case "cleanup":
+      return chalk.gray(`[${tag}]`);
+
+    default:
+      return chalk.white(`[${tag}]`);
+  }
 }
 
 function createCLI({ tools, onSelect, onExit }) {
@@ -90,7 +131,10 @@ function createCLI({ tools, onSelect, onExit }) {
     console.log(
       chalk.gray("🌐 API: ") + chalk.white(process.env.SYNCRO_API_URL),
     );
-    console.log(chalk.gray("👤 USER: ") + chalk.white(getCurrentAccount()));
+    console.log(
+      chalk.gray("👤 ACCOUNT: ") +
+        chalk.bgBlue.white.bold(` ${getCurrentAccount()} `),
+    );
 
     console.log(chalk.gray("🕒 ") + chalk.white(new Date().toLocaleString()));
 
@@ -98,6 +142,7 @@ function createCLI({ tools, onSelect, onExit }) {
   }
 
   function renderMenu() {
+    process.stdout.write("\x1b[?25l");
     clearScreen();
     printHeader();
 
@@ -118,11 +163,21 @@ function createCLI({ tools, onSelect, onExit }) {
             chalk.gray("━".repeat(20)),
         );
       }
+      const nameWidth = 34;
 
+      const paddedName = tool.name.padEnd(nameWidth);
+
+      const tagStr = tool.tags?.length ? tool.tags.map(colorTag).join(" ") : "";
       if (isSelected) {
-        console.log(chalk.bgCyan.black(` ${icon} ${tool.name} `));
+        console.log(
+          chalk.bgCyan.black(` ${icon} ${paddedName}`) +
+            chalk.bgCyan.black(` ${tagStr}`) +
+            " ",
+        );
       } else {
-        console.log(chalk.whiteBright(`    ${icon} ${tool.name}`));
+        console.log(
+          chalk.whiteBright(`    ${icon} ${paddedName}`) + chalk.white(tagStr),
+        );
       }
     });
 
@@ -153,6 +208,7 @@ function createCLI({ tools, onSelect, onExit }) {
     }
 
     console.log(chalk.gray("\n↑ ↓ navigate • ENTER select • q exit"));
+    process.stdout.write("\x1b[?25h"); // show cursor
   }
 
   async function handleSelect() {

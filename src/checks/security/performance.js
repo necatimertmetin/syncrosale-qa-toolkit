@@ -1,4 +1,4 @@
-const { getWithAuth } = require("../api");
+const { getWithAuth } = require("../../api");
 
 const endpoints = [
   "/store/1/product/detailed2?page=0&size=100",

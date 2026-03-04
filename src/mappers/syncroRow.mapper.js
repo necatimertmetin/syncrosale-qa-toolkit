@@ -1,7 +1,7 @@
 const {
   cleanString,
   toNumber,
-} = require("../checks/reconciliation/utils/sanitize");
+} = require("../checks/data/reconciliation/utils/sanitize");
 
 function normalizeSyncroRow(row) {
   return {

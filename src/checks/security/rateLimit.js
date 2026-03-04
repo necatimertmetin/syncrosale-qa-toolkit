@@ -1,6 +1,6 @@
 const pLimit = require("p-limit").default;
-const { PRODUCT_PATH, STORE_ID, KNOWN_GOOD_ASIN } = require("../config");
-const { getWithAuth } = require("../api");
+const { PRODUCT_PATH, STORE_ID, KNOWN_GOOD_ASIN } = require("../../config");
+const { getWithAuth } = require("../../api");
 
 async function run() {
   const limit = pLimit(50); // küçük burst

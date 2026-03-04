@@ -1,8 +1,8 @@
 const {
   cleanString,
   toNumber,
-} = require("../checks/reconciliation/utils/sanitize");
-const { getField } = require("../checks/reconciliation/utils/helpers");
+} = require("../checks/data/reconciliation/utils/sanitize");
+const { getField } = require("../checks/data/reconciliation/utils/helpers");
 
 function normalizeAmazonRow(row) {
   return {

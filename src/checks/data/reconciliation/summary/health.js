@@ -4,13 +4,23 @@ function computeSystemHealth(results, summary) {
   let totalPriceDiff = 0;
   let totalStockDiff = 0;
 
+  let criticalIssues = 0;
+
   results.forEach((r) => {
     if (r.diff) {
-      totalPriceDiff += Math.abs(r.diff.priceDiff || 0);
-      totalStockDiff += Math.abs(r.diff.quantityDiff || 0);
+      const priceDiff = Math.abs(r.diff.priceDiff || 0);
+      const stockDiff = Math.abs(r.diff.quantityDiff || 0);
+
+      totalPriceDiff += priceDiff;
+      totalStockDiff += stockDiff;
+
+      if (priceDiff >= 10 || stockDiff >= 10) {
+        criticalIssues++;
+      }
     }
   });
 
+  // drift indexes
   summary.priceDriftIndex =
     summary.total > 0 ? (totalPriceDiff / summary.total).toFixed(2) : 0;
 
@@ -45,16 +55,25 @@ function computeSystemHealth(results, summary) {
     summary.total,
   );
 
-  // system health score
+  // ---- HEALTH CALCULATION ----
+
   const missingRate =
     summary.total > 0 ? (summary.missing / summary.total) * 100 : 0;
 
   const priceRate = Number(summary.priceDriftRate.replace("%", ""));
   const stockRate = Number(summary.stockDriftRate.replace("%", ""));
 
-  const avgIssueRate = (missingRate + priceRate + stockRate) / 3;
+  const criticalRate =
+    summary.total > 0 ? (criticalIssues / summary.total) * 100 : 0;
 
-  summary.systemHealth = (100 - avgIssueRate).toFixed(2) + "%";
+  const health =
+    100 -
+    (missingRate * 0.45 +
+      priceRate * 0.3 +
+      stockRate * 0.15 +
+      criticalRate * 0.1);
+
+  summary.systemHealth = Math.max(0, health).toFixed(2) + "%";
 }
 
 module.exports = { computeSystemHealth };

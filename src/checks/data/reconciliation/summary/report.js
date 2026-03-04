@@ -9,10 +9,10 @@ function buildMarkdown(summary, worst) {
   function getHealthBadge(score) {
     const n = Number(score.replace("%", ""));
 
-    if (n >= 85) return "🟢 HEALTHY";
-    if (n >= 70) return "🟡 STABLE";
-    if (n >= 50) return "🟠 DEGRADED";
-    return "🔴 CRITICAL";
+    if (n >= 85) return "🟢 CONSISTENT";
+    if (n >= 70) return "🟡 MINOR DRIFT";
+    if (n >= 55) return "🟠 MAJOR DRIFT";
+    return "🔴 OUT OF SYNC";
   }
   const healthBadge = getHealthBadge(summary.systemHealth);
 
@@ -21,13 +21,12 @@ function buildMarkdown(summary, worst) {
   lines.push("_Overall synchronization reliability score_");
 
   lines.push(
-    "_Calculated from the average impact of catalog gaps, price drift, and stock drift across the entire catalog._",
+    "_Calculated from catalog coverage, price drift, stock drift, and critical mismatch density across the entire catalog._",
   );
 
   lines.push(
-    "_Formula: 100 − avg(missingRate, priceDriftRate, stockDriftRate)_",
+    "_Formula: 100 − (missingRate × 0.45 + priceDriftRate × 0.30 + stockDriftRate × 0.15 + criticalRate × 0.10)_",
   );
-
   lines.push("\n---\n");
 
   // DETAIL METRICS

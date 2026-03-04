@@ -1,5 +1,5 @@
 // audit.js
-const { parseCSV } = require("../../parsers/csvParser2");
+const { parseCSV } = require("../../../parsers/csvParser2");
 
 // ---------------- utils ----------------
 function toNull(v) {

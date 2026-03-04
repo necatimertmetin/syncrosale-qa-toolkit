@@ -1,5 +1,5 @@
-const { PRODUCT_PATH, STORE_ID } = require("../config");
-const { getWithAuth } = require("../api");
+const { PRODUCT_PATH, STORE_ID } = require("../../config");
+const { getWithAuth } = require("../../api");
 
 function looksLeaky(bodyText) {
   const s = (bodyText || "").toLowerCase();

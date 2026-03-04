@@ -1,11 +1,13 @@
-const { getWithAuth } = require("../../api");
+const { getWithAuth } = require("../../../api");
 const { audit } = require("./orderAudit");
 
 async function run() {
   try {
     console.log("📥 Fetching orders from Syncro API...\n");
 
-    const res = await getWithAuth("/store/1/order/export");
+    const res = await getWithAuth(
+      "/store/1/order/export?sort=created&order=desc&extended=true",
+    );
 
     if (res.status !== 200) {
       console.log("❌ Failed to fetch CSV:", res.status);

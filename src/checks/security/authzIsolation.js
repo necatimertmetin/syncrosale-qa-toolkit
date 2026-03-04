@@ -3,8 +3,8 @@ const {
   STORE_ID,
   OTHER_STORE_IDS_TO_TEST,
   KNOWN_GOOD_ASIN,
-} = require("../config");
-const { getWithAuth } = require("../api");
+} = require("../../config");
+const { getWithAuth } = require("../../api");
 
 function classify(expected, actual) {
   return expected.includes(actual) ? "OK" : "FAIL_UNEXPECTED_STATUS";
