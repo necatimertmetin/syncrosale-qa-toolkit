@@ -3,7 +3,7 @@ const path = require("path");
 
 const { reconcile } = require("./reconciliation");
 const { mapToReportFormat } = require("./mapper");
-const { buildSummary } = require("./summary");
+const { buildSummary } = require("./summary/buildSummary");
 
 async function run(cli) {
   return new Promise((resolve) => {
