@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { OUT_DIR } = require("../config");
-
+const { getCurrentAccount } = require("../auth");
 // ---------------- FORMAT HELPERS ----------------
 function formatValue(val) {
   if (val === null || val === undefined) return "";
@@ -60,8 +60,13 @@ function deleteAllReports() {
 
 function createRunFolder(toolName) {
   const timestamp = getTimestamp();
-  const dir = path.join(OUT_DIR, toolName, timestamp);
+
+  const user = getCurrentAccount() || "unknown";
+
+  const dir = path.join(OUT_DIR, user, `${timestamp}_${toolName}`);
+
   fs.mkdirSync(dir, { recursive: true });
+
   return dir;
 }
 
