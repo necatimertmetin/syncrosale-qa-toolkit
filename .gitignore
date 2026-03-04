@@ -1,5 +1,7 @@
 /node_modules
 /results
+/config/accounts.json
+/config
 /package-lock.json
 .env
 .env.*

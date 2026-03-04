@@ -1,31 +1,32 @@
-const fs = require("fs");
+const { getWithAuth } = require("../../api");
 const { audit } = require("./productAudit");
 const { render } = require("./renderer");
 
-async function run(cli) {
-  return new Promise((resolve) => {
-    cli.ask("📂 Enter Product CSV path: ", (filePath) => {
-      try {
-        if (!fs.existsSync(filePath)) {
-          console.log("❌ File not found");
-          return resolve([]);
-        }
+async function run() {
+  try {
+    console.log("📥 Fetching products from Syncro API...\n");
 
-        const csv = fs.readFileSync(filePath, "utf8");
-        const result = audit(csv);
+    const res = await getWithAuth("/store/1/product/export");
 
-        console.log("\n📊 PRODUCT AUDIT DONE");
+    if (res.status !== 200) {
+      console.log("❌ Failed to fetch CSV:", res.status);
+      return [];
+    }
 
-        // 👇 renderer'ı result içine attach ediyoruz
-        result.__renderer = render;
+    const csv =
+      typeof res.data === "string" ? res.data : JSON.stringify(res.data);
 
-        resolve(result);
-      } catch (e) {
-        console.log("❌ ERROR:", e.message);
-        resolve([]);
-      }
-    });
-  });
+    const result = audit(csv);
+
+    console.log("\n📊 PRODUCT AUDIT DONE");
+
+    result.__renderer = render;
+
+    return result;
+  } catch (e) {
+    console.log("❌ ERROR:", e.message);
+    return [];
+  }
 }
 
 module.exports = { run };

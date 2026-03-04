@@ -1,6 +1,6 @@
 const readline = require("readline");
 const chalk = require("chalk").default;
-
+const { getCurrentAccount } = require("../auth");
 let keypressHandler = null;
 
 function sanitizePath(input) {
@@ -90,6 +90,7 @@ function createCLI({ tools, onSelect, onExit }) {
     console.log(
       chalk.gray("🌐 API: ") + chalk.white(process.env.SYNCRO_API_URL),
     );
+    console.log(chalk.gray("👤 USER: ") + chalk.white(getCurrentAccount()));
 
     console.log(chalk.gray("🕒 ") + chalk.white(new Date().toLocaleString()));
 

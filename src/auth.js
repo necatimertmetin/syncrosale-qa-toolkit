@@ -1,37 +1,40 @@
 const axios = require("axios");
 const { AUTH_URL, CLIENT_ID } = require("./config");
-
-// ❌ SABİT ENV YOK ARTIK
+const accounts = require("../config/accounts.json");
 
 let accessToken = null;
 let refreshToken = null;
 
+let currentAccount = null;
+
 let isRefreshing = false;
 let refreshPromise = null;
 
-/**
- * 🔥 ENV'i runtime'da oku
- */
-function getEnv() {
-  const username = process.env.SYNCRO_USERNAME;
-  const password = process.env.SYNCRO_PASSWORD;
+function setAccount(name) {
+  const acc = accounts[name];
 
-  if (!username || !password) {
-    throw new Error(
-      "Missing SYNCRO_USERNAME / SYNCRO_PASSWORD env vars. Use .env or set in shell.",
-    );
+  if (!acc) {
+    throw new Error(`Account not found: ${name}`);
   }
 
-  return { username, password };
+  currentAccount = acc;
+}
+
+function getCurrentAccount() {
+  return currentAccount?.username || "none";
 }
 
 /**
  * 🟢 LOGIN
  */
 async function login() {
-  const { username, password } = getEnv();
+  if (!currentAccount) {
+    throw new Error("No account selected");
+  }
 
-  console.log("🔐 LOGIN...");
+  const { username, password } = currentAccount;
+
+  console.log(`🔐 LOGIN (${username})`);
 
   const res = await axios.post(
     AUTH_URL,
@@ -48,6 +51,7 @@ async function login() {
   refreshToken = res.data.refresh_token;
 
   console.log("✅ LOGIN SUCCESS");
+
   return accessToken;
 }
 
@@ -77,6 +81,7 @@ async function refreshAccessToken() {
       refreshToken = res.data.refresh_token;
 
       console.log("✅ TOKEN REFRESHED");
+
       return accessToken;
     } catch (e) {
       console.log("⚠️ REFRESH FAILED → fallback LOGIN");
@@ -102,4 +107,7 @@ module.exports = {
   login,
   refreshAccessToken,
   getAccessToken,
+  setAccount,
+  getCurrentAccount,
+  accounts,
 };

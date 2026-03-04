@@ -10,7 +10,7 @@ const {
 } = require("./src/report/reporter");
 
 const { createCLI } = require("./src/cli/menu");
-
+const { setAccount, accounts } = require("./src/auth");
 // tools
 const performance = require("./src/checks/performance");
 const reconciliation = require("./src/checks/reconciliation/run");
@@ -150,6 +150,35 @@ const tools = [
   },
 ];
 
+async function selectAccount(cli) {
+  const names = Object.keys(accounts);
+
+  console.log("\n👤 Select account:\n");
+
+  names.forEach((n, i) => {
+    console.log(`${i + 1}. ${n}`);
+  });
+
+  return new Promise((resolve) => {
+    cli.ask("\nSelect account number: ", (input) => {
+      const idx = Number(input) - 1;
+
+      if (idx < 0 || idx >= names.length) {
+        console.log("❌ Invalid selection");
+        process.exit(1);
+      }
+
+      const selected = names[idx];
+
+      setAccount(selected);
+
+      console.log(`\n✅ Using account: ${selected}\n`);
+
+      resolve();
+    });
+  });
+}
+
 // CLI oluştur
 const cli = createCLI({
   tools,
@@ -204,4 +233,8 @@ const cli = createCLI({
 });
 
 // start
-cli.start();
+(async () => {
+  await selectAccount(cli);
+
+  cli.start();
+})();
