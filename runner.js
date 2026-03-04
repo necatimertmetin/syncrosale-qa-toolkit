@@ -9,6 +9,8 @@ const {
   writeCSV,
 } = require("./src/report/reporter");
 
+const chalk = require("chalk").default;
+const readline = require("readline");
 const { createCLI } = require("./src/cli/menu");
 const { setAccount, accounts } = require("./src/auth");
 // tools
@@ -150,32 +152,80 @@ const tools = [
   },
 ];
 
-async function selectAccount(cli) {
+async function selectAccount() {
   const names = Object.keys(accounts);
 
-  console.log("\n👤 Select account:\n");
+  let selectedIndex = 0;
 
-  names.forEach((n, i) => {
-    console.log(`${i + 1}. ${n}`);
-  });
+  readline.emitKeypressEvents(process.stdin);
+
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(true);
+  }
 
   return new Promise((resolve) => {
-    cli.ask("\nSelect account number: ", (input) => {
-      const idx = Number(input) - 1;
+    function render() {
+      console.clear();
 
-      if (idx < 0 || idx >= names.length) {
-        console.log("❌ Invalid selection");
-        process.exit(1);
+      console.log(chalk.gray("=".repeat(60)));
+      console.log(chalk.bold.cyan("🧪 SYNCRO QA TOOLKIT"));
+      console.log(chalk.gray("=".repeat(60)));
+
+      console.log(chalk.white("\n👤 Select Account\n"));
+
+      names.forEach((name, i) => {
+        const isSelected = i === selectedIndex;
+
+        const icon = "👤";
+
+        if (isSelected) {
+          console.log(chalk.bgCyan.black(`  ${icon} ${name}  `));
+        } else {
+          console.log(chalk.whiteBright(`    ${icon} ${name}`));
+        }
+      });
+
+      console.log(chalk.gray("\n↑ ↓ navigate • ENTER select"));
+    }
+
+    render();
+
+    const handler = (_, key) => {
+      if (key.name === "up") {
+        selectedIndex =
+          selectedIndex === 0 ? names.length - 1 : selectedIndex - 1;
+        render();
       }
 
-      const selected = names[idx];
+      if (key.name === "down") {
+        selectedIndex =
+          selectedIndex === names.length - 1 ? 0 : selectedIndex + 1;
+        render();
+      }
 
-      setAccount(selected);
+      if (key.name === "return") {
+        const selected = names[selectedIndex];
 
-      console.log(`\n✅ Using account: ${selected}\n`);
+        process.stdin.removeListener("keypress", handler);
 
-      resolve();
-    });
+        if (process.stdin.isTTY) {
+          process.stdin.setRawMode(false);
+        }
+
+        setAccount(selected);
+
+        console.clear();
+        console.log(`✅ Using account: ${chalk.cyan(selected)}\n`);
+
+        resolve();
+      }
+
+      if (key.ctrl && key.name === "c") {
+        process.exit(0);
+      }
+    };
+
+    process.stdin.on("keypress", handler);
   });
 }
 
@@ -234,7 +284,7 @@ const cli = createCLI({
 
 // start
 (async () => {
-  await selectAccount(cli);
+  await selectAccount();
 
   cli.start();
 })();
