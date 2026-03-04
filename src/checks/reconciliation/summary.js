@@ -1,14 +1,25 @@
-function buildSummary(results) {
+function buildSummary(results, metrics = {}) {
   const summary = {
     type: "SUMMARY",
+
+    // 🔹 core dataset size
     total: results.length,
 
+    // 🔹 reconciliation counters
     match: 0,
     priceMismatch: 0,
     stockMismatch: 0,
     bothMismatch: 0,
     missing: 0,
 
+    // 🔹 catalog metrics (reconcile'dan geliyor)
+    syncroTotal: metrics.syncroTotal || 0,
+    amazonTotal: metrics.amazonTotal || 0,
+    syncroMatchedInAmazon: metrics.syncroMatchedInAmazon || 0,
+    coverageRate: metrics.coverageRate || "0%",
+    catalogGap:
+      (metrics.syncroTotal || 0) - (metrics.syncroMatchedInAmazon || 0),
+    // 🔹 severity counters (internal)
     _priceSeverity: {
       LOW: 0,
       MEDIUM: 0,
@@ -109,17 +120,59 @@ function buildSummary(results) {
 
   // SUMMARY
   lines.push("## 📊 Summary\n");
-  lines.push("| Metric | Value |");
-  lines.push("|--------|-------|");
-  lines.push(`| Total | ${summary.total} |`);
-  lines.push(`| Match | ${summary.match} |`);
-  lines.push(`| Mismatch | ${summary.mismatch} |`);
-  lines.push(`| Missing | ${summary.missing} |`);
-  lines.push(`| Match Rate | ${summary.matchRate} |`);
-  lines.push(`| Mismatch Rate | ${summary.mismatchRate} |`);
+  lines.push("| Metric | Value | Description |");
+  lines.push("|--------|-------|-------------|");
+  lines.push(
+    `| Total ASINs Compared | ${summary.total} | Unique ASINs across SyncroSale and Amazon |`,
+  );
+
+  lines.push(
+    `| Perfect Matches | ${summary.match} | Price and stock match exactly |`,
+  );
+
+  lines.push(
+    `| Total Mismatches | ${summary.mismatch} | Price and/or stock mismatch |`,
+  );
+
+  lines.push(
+    `| Missing Listings | ${summary.missing} | ASIN exists only in one dataset |`,
+  );
+
+  lines.push(
+    `| Match Rate | ${summary.matchRate} | Perfect matches / total ASINs |`,
+  );
+
+  lines.push(
+    `| Mismatch Rate | ${summary.mismatchRate} | Any mismatch / total ASINs |`,
+  );
 
   lines.push("\n---\n");
 
+  lines.push("## 🧾 Catalog Coverage\n");
+
+  lines.push("| Metric | Value | Description |");
+  lines.push("|--------|-------|-------------|");
+
+  lines.push(
+    `| Active SyncroSale Products | ${summary.syncroTotal} | Products marked ACTIVE in SyncroSale |`,
+  );
+
+  lines.push(
+    `| Amazon Listings | ${summary.amazonTotal} | Listings found in Amazon inventory report |`,
+  );
+
+  lines.push(
+    `| Syncro Products Found on Amazon | ${summary.syncroMatchedInAmazon} | SyncroSale ASINs that exist in Amazon |`,
+  );
+
+  lines.push(
+    `| Catalog Coverage Rate | ${summary.coverageRate} | % of SyncroSale catalog available on Amazon |`,
+  );
+  lines.push(
+    `| Missing From Amazon | ${summary.catalogGap} | SyncroSale products not found in Amazon listing report |`,
+  );
+
+  lines.push("\n---\n");
   // DEFINITIONS
   lines.push("## ℹ️ Severity Definitions\n");
 

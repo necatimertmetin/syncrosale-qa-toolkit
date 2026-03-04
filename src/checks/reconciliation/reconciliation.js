@@ -73,7 +73,31 @@ function reconcile(syncroCsvText, amazonTxtText) {
     });
   });
 
-  return results;
+  const syncroTotal = syncroMap.size;
+  const amazonTotal = amazonMap.size;
+
+  let syncroMatchedInAmazon = 0;
+
+  syncroMap.forEach((_, asin) => {
+    if (amazonMap.has(asin)) {
+      syncroMatchedInAmazon++;
+    }
+  });
+
+  const coverageRate =
+    syncroTotal > 0
+      ? ((syncroMatchedInAmazon / syncroTotal) * 100).toFixed(2) + "%"
+      : "0%";
+
+  return {
+    results,
+    metrics: {
+      syncroTotal,
+      amazonTotal,
+      syncroMatchedInAmazon,
+      coverageRate,
+    },
+  };
 }
 
 module.exports = { reconcile };

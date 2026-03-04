@@ -27,13 +27,16 @@ async function run(cli) {
           const syncroCsv = fs.readFileSync(syncroFullPath, "utf-8");
 
           // 🔥 CORE
-          const rawResults = reconcile(syncroCsv, amazonTxt);
+          const { results: rawResults, metrics } = reconcile(
+            syncroCsv,
+            amazonTxt,
+          );
 
           console.log("\n✅ Reconciliation completed");
           console.log(`🔢 Total records: ${rawResults.length}`);
 
           // 🔥 SUMMARY
-          const summary = buildSummary(rawResults);
+          const summary = buildSummary(rawResults, metrics);
           console.log("\n📊 SUMMARY");
           console.table(summary);
 
