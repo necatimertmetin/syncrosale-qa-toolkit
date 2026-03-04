@@ -115,29 +115,64 @@ function writeMarkdown(dir, filename, results, title = "QA Report") {
 
   const summary = results.find((r) => r.type === "SUMMARY");
 
-  // 🔥 INSIGHTS (üstte göster)
+  // 🔥 INSIGHTS
   if (summary) {
     const insights = buildInsights(summary);
 
-    lines.push("## 🧠 Insights\n");
-    insights.forEach((i) => lines.push(`- ${i}`));
-    lines.push("\n---\n");
+    if (insights?.length) {
+      lines.push("## 🧠 Insights");
+      lines.push("");
+
+      insights.forEach((i) => lines.push(`- ${i}`));
+
+      lines.push("");
+      lines.push("---");
+      lines.push("");
+    }
   }
 
-  // 🔥 CUSTOM RENDER
+  // 🔥 SUMMARY RENDERING
   if (summary) {
-    if (customRender) {
+    const pretty = summary.prettyReport || summary._prettyReport;
+
+    // 1️⃣ Pretty markdown report
+    if (pretty) {
+      lines.push(pretty);
+      lines.push("");
+      lines.push("---");
+      lines.push("");
+    }
+
+    // 2️⃣ Custom renderer
+    else if (customRender) {
       customRender(summary, lines, results);
-    } else {
-      lines.push("## 📊 Summary\n");
+    }
+
+    // 3️⃣ Default summary table
+    else {
+      lines.push("## 📊 Summary");
+      lines.push("");
       lines.push("| Metric | Value |");
       lines.push("|--------|-------|");
 
-      Object.entries(summary).forEach(([k, v]) => {
-        lines.push(`| ${k} | ${formatValue(v)} |`);
-      });
+      Object.entries(summary)
+        .filter(
+          ([k]) =>
+            ![
+              "_priceSeverity",
+              "_stockSeverity",
+              "_prettyReport",
+              "prettyReport",
+              "type",
+            ].includes(k),
+        )
+        .forEach(([k, v]) => {
+          lines.push(`| ${k} | ${formatValue(v)} |`);
+        });
 
-      lines.push("\n---\n");
+      lines.push("");
+      lines.push("---");
+      lines.push("");
     }
   }
 
@@ -147,7 +182,8 @@ function writeMarkdown(dir, filename, results, title = "QA Report") {
   const MAX_ROWS = 50;
   const sample = data.slice(0, MAX_ROWS);
 
-  lines.push(`## 🔍 Sample Results (First ${MAX_ROWS})\n`);
+  lines.push(`## 🔍 Sample Results (First ${MAX_ROWS})`);
+  lines.push("");
 
   if (!sample.length) {
     lines.push("_No data_");
@@ -166,13 +202,12 @@ function writeMarkdown(dir, filename, results, title = "QA Report") {
     }
   }
 
-  lines.push("\n");
+  lines.push("");
   lines.push("## 📁 Full Data");
   lines.push("See results.json for complete dataset.");
 
   fs.writeFileSync(path.join(dir, filename), lines.join("\n"));
 }
-
 // ---------------- CSV ----------------
 function writeCSV(dir, filename, results) {
   return new Promise((resolve, reject) => {
