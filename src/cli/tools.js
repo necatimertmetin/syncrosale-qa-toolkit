@@ -3,6 +3,7 @@ const profitValidation = require("../checks/data/profitValidation/run");
 const buyableButNotActive = require("../checks/data/buyableButNotActive/run");
 const orderAudit = require("../checks/data/orderAudit/run");
 const productAudit = require("../checks/data/productAudit/run");
+const elifTest = require("../checks/data/elif/run");
 
 // security
 const inputValidation = require("../checks/security/inputValidation");
@@ -12,6 +13,17 @@ const rateLimit = require("../checks/security/rateLimit");
 const performance = require("../checks/security/performance");
 
 const tools = [
+  {
+    section: "DATA",
+    name: "Elif",
+    description: "Test yapiyorum cunku oyle",
+    input: "",
+    output: "Test sonucu",
+    impact: "MEDIUM",
+    tags: ["", ""],
+    run: elifTest.run,
+  },
+
   {
     section: "DATA",
     name: "Data Reconciliation",
