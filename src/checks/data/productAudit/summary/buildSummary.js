@@ -31,16 +31,8 @@ function buildSummary(products, results) {
 
   const outOfCriteria = products.filter((p) => p.criteriaReason);
 
-  const activeProducts = products.filter(
-    (p) => !p.criteriaReason && (p.price ?? 0) > 0,
-  );
-
-  const inactiveProducts = products.filter(
-    (p) => (p.price ?? 0) === 0 && (p.stock ?? 0) === 0,
-  );
-
   const deadStock = products.filter(
-    (p) => p.stock > 20 && p.price > 0 && p.rating != null && p.rating < 4.2,
+    (p) => p.stock >= 19 && p.rating != null && p.rating < 4.2,
   );
   // ---------------- CATEGORY BREAKDOWN ----------------
 
@@ -150,8 +142,6 @@ function buildSummary(products, results) {
     total,
 
     status: {
-      active: activeProducts.length,
-      inactive: inactiveProducts.length,
       outOfCriteria: outOfCriteria.length,
     },
 
