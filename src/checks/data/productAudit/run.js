@@ -1,6 +1,6 @@
 const { getWithAuth } = require("../../../api");
+
 const { audit } = require("./productAudit");
-const { render } = require("./renderer");
 
 async function run() {
   try {
@@ -16,15 +16,21 @@ async function run() {
     const csv =
       typeof res.data === "string" ? res.data : JSON.stringify(res.data);
 
-    const result = audit(csv);
+    const results = audit(csv);
 
-    console.log("\n📊 PRODUCT AUDIT DONE");
+    const summary = results.find((r) => r.type === "SUMMARY");
 
-    result.__renderer = render;
+    if (summary?.prettyReport) {
+      console.log("\n");
+      console.log(summary.prettyReport);
+      console.log("\n");
+    }
 
-    return result;
+    // CLI standard output
+    return [summary, ...results.filter((r) => r.type !== "SUMMARY")];
   } catch (e) {
     console.log("❌ ERROR:", e.message);
+
     return [];
   }
 }
