@@ -38,7 +38,7 @@ const tools = [
     section: "DATA",
     name: "Product Audit",
     description: "Analyzes product pricing, margin and category performance",
-    input: "Product CSV",
+    input: "",
     output: "Insights + breakdowns",
     impact: "HIGH",
     tags: ["catalog", "margin", "pricing"],
