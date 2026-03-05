@@ -118,8 +118,6 @@ function render(summary, lines, allResults = []) {
   lines.push("| Status | Count |");
   lines.push("|------|------|");
 
-  lines.push(`| Active | ${summary.status?.active ?? 0} |`);
-  lines.push(`| Inactive | ${summary.status?.inactive ?? 0} |`);
   lines.push(`| Out Of Criteria | ${summary.status?.outOfCriteria ?? 0} |`);
 
   lines.push("");
