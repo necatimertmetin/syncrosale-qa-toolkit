@@ -29,15 +29,11 @@ function audit(csvText) {
         margin,
       });
     }
-    results.push({
-      type: "ANOMALY_PRICE_ABOVE_MAX",
-      asin: p.asin,
-      price: p.price,
-      cost: p.cost,
-      margin,
-    });
 
+    // price anomalies
     results.push(...runPrice(p));
+
+    // stock anomalies
     results.push(...runStock(p));
   }
 
