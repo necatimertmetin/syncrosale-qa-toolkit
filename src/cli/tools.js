@@ -3,7 +3,7 @@ const profitValidation = require("../checks/data/profitValidation/run");
 const buyableButNotActive = require("../checks/data/buyableButNotActive/run");
 const orderAudit = require("../checks/data/orderAudit/run");
 const productAudit = require("../checks/data/productAudit/run");
-
+const productAuditAdvanced = require("../checks/data/productAudit/runFiltered");
 // security
 const inputValidation = require("../checks/security/inputValidation");
 const authzIsolation = require("../checks/security/authzIsolation");
@@ -22,7 +22,16 @@ const tools = [
     tags: ["catalog", "sync"],
     run: reconciliation.run,
   },
-
+  {
+    section: "DATA",
+    name: "Product Audit (Advanced)",
+    description: "Interactive multi-preset product audit",
+    input: "None",
+    output: "Insights + comparisons",
+    impact: "HIGH",
+    tags: ["catalog", "margin", "pricing"],
+    run: productAuditAdvanced.run,
+  },
   {
     section: "DATA",
     name: "Buyable but Not Active",

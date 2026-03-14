@@ -19,7 +19,6 @@ function buildHeaders(token) {
   };
 }
 
-// 🔥 status → color mapper
 function getStatusColor(status) {
   if (status >= 500) return chalk.red;
   if (status >= 400) return chalk.yellow;
@@ -27,7 +26,6 @@ function getStatusColor(status) {
   return chalk.green;
 }
 
-// 🔥 status → label
 function getStatusLabel(status) {
   if (status >= 500) return "SERVER_ERROR";
   if (status >= 400) return "CLIENT_ERROR";
@@ -35,11 +33,15 @@ function getStatusLabel(status) {
   return "OK";
 }
 
+/* =========================================================
+   MAIN GET
+   ========================================================= */
+
 async function get(path, retries = 2, options = {}) {
-  const { silent = false } = options;
+  const { silent = false, ...axiosOptions } = options;
 
   const token = getAccessToken();
-  if (!token) throw new Error("No access token (did you call initAuth?)");
+  if (!token) throw new Error("No access token");
 
   const url = `${API_BASE}${path}`;
 
@@ -52,9 +54,15 @@ async function get(path, retries = 2, options = {}) {
     }).start();
   }
 
+  const { headers: customHeaders, ...rest } = axiosOptions;
+
   try {
     const res = await axios.get(url, {
-      headers: buildHeaders(token),
+      headers: {
+        ...buildHeaders(token),
+        ...customHeaders,
+      },
+      ...rest,
       validateStatus: () => true,
     });
 
@@ -69,17 +77,6 @@ async function get(path, retries = 2, options = {}) {
       const contentType = res.headers["content-type"] || "";
       console.log("📦", chalk.gray("CONTENT-TYPE:"), chalk.white(contentType));
 
-      // 🚨 HTML anomaly detection
-      if (
-        typeof res.data === "string" &&
-        res.data.toLowerCase().includes("<!doctype html>")
-      ) {
-        console.log(
-          chalk.red("🚨 HTML RESPONSE → WRONG ENDPOINT / GATEWAY / AUTH ISSUE"),
-        );
-      }
-
-      // 🔍 preview
       let preview;
       try {
         preview =
@@ -87,7 +84,7 @@ async function get(path, retries = 2, options = {}) {
             ? res.data.slice(0, 200)
             : JSON.stringify(res.data)?.slice(0, 200);
       } catch {
-        preview = "[unserializable response]";
+        preview = "[unserializable]";
       }
 
       console.log("🔎", chalk.gray("PREVIEW:"), chalk.dim(preview));
@@ -102,22 +99,22 @@ async function get(path, retries = 2, options = {}) {
   }
 }
 
+/* =========================================================
+   AUTH WRAPPER
+   ========================================================= */
+
 async function getWithAuth(path, retries = 2, options = {}) {
   const { silent = false } = options;
 
   const res = await get(path, retries, options);
 
-  // 🔐 TOKEN EXPIRED
   if (res.status === 401 && retries > 0) {
-    if (!silent) {
-      console.log(chalk.yellow("⚠️ 401 → refreshing token..."));
-    }
+    if (!silent) console.log(chalk.yellow("⚠️ Refreshing token..."));
 
     await refreshAccessToken();
     return getWithAuth(path, retries - 1, options);
   }
 
-  // 🚦 RATE LIMIT
   if (res.status === 429 && retries > 0) {
     const retryAfter = Number(res.headers?.["retry-after"] || 2);
 
