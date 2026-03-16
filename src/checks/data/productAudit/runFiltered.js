@@ -1,23 +1,94 @@
 const readline = require("readline");
 const { getWithAuth } = require("../../../api");
 const { PRESETS } = require("./presets");
-
-/* =========================================================
-   PRESETS
-   ========================================================= */
+const { runAudits } = require("./audits");
 
 /* =========================================================
    READLINE
    ========================================================= */
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
+function createAsk(cli) {
+  if (cli?.ask) {
+    return {
+      ask: (q) => new Promise((res) => cli.ask(q, res)),
+      close: () => {},
+    };
+  }
 
-const ask = (q) => new Promise((res) => rl.question(q, (a) => res(a.trim())));
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
 
-const closeCli = () => rl.close();
+  return {
+    ask: (q) => new Promise((res) => rl.question(q, (a) => res(a.trim()))),
+    close: () => rl.close(),
+  };
+}
+
+function clearScreen() {
+  process.stdout.write("\x1b[2J\x1b[H");
+}
+
+function selectFromOptions(prompt, options) {
+  return new Promise((resolve) => {
+    if (!process.stdin.isTTY) {
+      // fallback to basic prompt
+      console.log(prompt);
+      return resolve(options[0]);
+    }
+
+    readline.emitKeypressEvents(process.stdin);
+    process.stdin.setRawMode(true);
+
+    let selectedIndex = 0;
+
+    function render() {
+      clearScreen();
+      console.log("\n" + prompt + "\n");
+      options.forEach((opt, i) => {
+        const prefix = i === selectedIndex ? "›" : " ";
+        const line = `${prefix} ${opt}`;
+        console.log(i === selectedIndex ? `\x1b[36m${line}\x1b[0m` : line);
+      });
+      console.log("\nUse ↑/↓ to navigate, ENTER to select");
+    }
+
+    function onKey(_, key) {
+      if (key.name === "up") {
+        selectedIndex = (selectedIndex - 1 + options.length) % options.length;
+        render();
+      }
+
+      if (key.name === "down") {
+        selectedIndex = (selectedIndex + 1) % options.length;
+        render();
+      }
+
+      if (key.name === "return") {
+        cleanup();
+        resolve(options[selectedIndex]);
+      }
+
+      if (key.ctrl && key.name === "c") {
+        cleanup();
+        process.exit(0);
+      }
+    }
+
+    function cleanup() {
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(false);
+      }
+      process.stdin.removeListener("keypress", onKey);
+      clearScreen();
+    }
+
+    process.stdin.on("keypress", onKey);
+
+    render();
+  });
+}
 
 /* =========================================================
    HELPERS
@@ -72,15 +143,19 @@ async function fetchCsv(predicate) {
    MAIN RUNNER
    ========================================================= */
 
-async function run() {
+async function run(cli) {
+  const { ask, close } = createAsk(cli);
+
   try {
     console.log("\n📊 CSV Dataset Inspector\n");
 
-    console.log("1) Single preset");
-    console.log("2) Multiple presets");
-    console.log("3) Run ALL presets\n");
-
-    const mode = await ask("Select mode (1/2/3): ");
+    const mode = (
+      await selectFromOptions("Select mode:", [
+        "1) Single preset",
+        "2) Multiple presets",
+        "3) Run ALL presets",
+      ])
+    )[0];
 
     let selectedKeys = [];
 
@@ -92,7 +167,7 @@ async function run() {
 
       if (!PRESETS[key]) {
         console.log("❌ Invalid preset key");
-        closeCli();
+        close();
         return [];
       }
 
@@ -110,7 +185,7 @@ async function run() {
 
       if (selectedKeys.length === 0) {
         console.log("❌ No presets selected");
-        closeCli();
+        close();
         return [];
       }
     } else if (mode === "3") {
@@ -118,7 +193,7 @@ async function run() {
       selectedKeys = Object.keys(PRESETS);
     } else {
       console.log("❌ Invalid selection");
-      closeCli();
+      close();
       return [];
     }
 
@@ -140,17 +215,28 @@ async function run() {
       datasets[key] = {
         label: preset.label,
         rows: rowCount,
+        csv,
       };
     }
 
     console.log("✅ Inspection completed.\n");
 
-    closeCli();
+    const audits = runAudits(datasets);
+    const prettyReport = require("./audits").buildPrettyReport(audits);
 
-    return datasets;
+    close();
+
+    return {
+      datasets,
+      audits,
+      summary: {
+        type: "SUMMARY",
+        prettyReport,
+      },
+    };
   } catch (e) {
     console.log("❌ ERROR:", e.message);
-    closeCli();
+    close();
     return [];
   }
 }

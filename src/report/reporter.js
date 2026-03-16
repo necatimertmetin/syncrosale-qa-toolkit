@@ -108,13 +108,25 @@ function writeMarkdown(dir, filename, results, title = "QA Report") {
   lines.push(`Generated: ${formatDate()}`);
   lines.push("");
 
-  if (!results?.length) {
+  // Support legacy array-based results (tools that return an array of entries)
+  // as well as the newer object-based results (e.g. productAuditAdvanced).
+  let normalized = results;
+
+  if (results && !Array.isArray(results) && typeof results === "object") {
+    if (results.summary) {
+      normalized = [results.summary];
+    } else {
+      normalized = [];
+    }
+  }
+
+  if (!normalized?.length) {
     lines.push("_No results_");
     fs.writeFileSync(path.join(dir, filename), lines.join("\n"));
     return;
   }
 
-  const summary = results.find((r) => r.type === "SUMMARY");
+  const summary = normalized.find((r) => r.type === "SUMMARY");
 
   // 🔥 INSIGHTS
   if (summary) {
@@ -178,7 +190,7 @@ function writeMarkdown(dir, filename, results, title = "QA Report") {
   }
 
   // 🔥 SAMPLE DATA
-  const data = results.filter((r) => r.type !== "SUMMARY");
+  const data = normalized.filter((r) => r.type !== "SUMMARY");
 
   const MAX_ROWS = 50;
   const sample = data.slice(0, MAX_ROWS);
