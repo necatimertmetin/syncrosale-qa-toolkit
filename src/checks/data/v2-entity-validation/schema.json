@@ -1,0 +1,151 @@
+{
+  "tables": [
+    {
+      "name": "sync_product_v2",
+      "entity": "ProductEntityV2",
+      "columns": {
+        "asin": { "type": "VARCHAR", "nullable": false, "pk": true },
+        "status": { "type": "ENUM", "nullable": false, "values": ["CREATED", "ACTIVE", "INACTIVE"], "default": "CREATED" },
+        "category_id": { "type": "VARCHAR", "nullable": true },
+        "category_id_path": { "type": "TEXT", "nullable": true },
+        "height_value": { "type": "DECIMAL", "nullable": true },
+        "height_unit": { "type": "VARCHAR", "nullable": true },
+        "length_value": { "type": "DECIMAL", "nullable": true },
+        "length_unit": { "type": "VARCHAR", "nullable": true },
+        "width_value": { "type": "DECIMAL", "nullable": true },
+        "width_unit": { "type": "VARCHAR", "nullable": true },
+        "weight_value": { "type": "DECIMAL", "nullable": true },
+        "weight_unit": { "type": "VARCHAR", "nullable": true }
+      },
+      "validations": [
+        { "type": "dimension_consistency", "description": "If height_value exists, height_unit must exist" },
+        { "type": "enum_check", "column": "status" }
+      ]
+    },
+    {
+      "name": "sync_store_product_price_v2",
+      "entity": "StoreProductPriceEntityV2",
+      "columns": {
+        "seller_id": { "type": "BIGINT", "nullable": false, "fk": "seller.id" },
+        "store_id": { "type": "BIGINT", "nullable": false, "fk": "store.id" },
+        "product_id": { "type": "VARCHAR", "nullable": false, "fk": "sync_product_v2.id" },
+        "stock": { "type": "INT", "nullable": false, "default": 0, "min": 0 },
+        "min_product_cost": { "type": "DECIMAL(10,2)", "nullable": true },
+        "min_shipping_cost": { "type": "DECIMAL(10,2)", "nullable": true },
+        "min_final_price": { "type": "DECIMAL(10,2)", "nullable": true },
+        "product_cost": { "type": "DECIMAL(10,2)", "nullable": true },
+        "shipping_cost": { "type": "DECIMAL(10,2)", "nullable": true },
+        "final_price": { "type": "DECIMAL(10,2)", "nullable": true },
+        "max_product_cost": { "type": "DECIMAL(10,2)", "nullable": true },
+        "max_shipping_cost": { "type": "DECIMAL(10,2)", "nullable": true },
+        "max_final_price": { "type": "DECIMAL(10,2)", "nullable": true },
+        "action": { "type": "ENUM", "values": ["ALLOW", "BLOCK", "REVIEW"], "nullable": true },
+        "missing_data": { "type": "BOOLEAN", "default": false },
+        "deleted": { "type": "BOOLEAN", "default": false },
+        "sku": { "type": "VARCHAR", "nullable": true }
+      },
+      "validations": [
+        { "type": "price_order_check", "description": "min_final_price <= final_price <= max_final_price" },
+        { "type": "price_consistency", "description": "If any price component is null, all should be null or all present" },
+        { "type": "stock_non_negative", "column": "stock" },
+        { "type": "currency_consistency", "description": "min_price_currency must match price_currency and max_price_currency" },
+        { "type": "profit_calculation", "description": "profit = final_price - (product_cost + shipping_cost + tax)" },
+        { "type": "enum_check", "column": "action" },
+        { "type": "missing_data_consistency", "description": "If missing_data=true, stock should be 0 and prices should be zero" }
+      ]
+    },
+    {
+      "name": "sync_marketplace_product_v2",
+      "entity": "MarketplaceProductEntityV2",
+      "columns": {
+        "marketplace_product_id": { "type": "BIGINT", "nullable": false, "pk": true },
+        "asin": { "type": "VARCHAR", "nullable": false, "fk": "sync_product_v2.asin" },
+        "seller_id": { "type": "BIGINT", "nullable": false, "fk": "seller.id" },
+        "marketplace_id": { "type": "BIGINT", "nullable": false },
+        "status": { "type": "ENUM", "values": ["ACTIVE", "INACTIVE"], "nullable": false },
+        "listing_active_or_failed": { "type": "BOOLEAN", "nullable": true }
+      },
+      "validations": [
+        { "type": "enum_check", "column": "status" },
+        { "type": "foreign_key_check", "fk": "asin", "references": "sync_product_v2" },
+        { "type": "orphan_check", "description": "ASIN must exist in sync_product_v2" }
+      ]
+    },
+    {
+      "name": "sync_marketplace_product_offer_v2",
+      "entity": "MarketplaceProductOfferEntityV2",
+      "columns": {
+        "offer_id": { "type": "BIGINT", "nullable": false, "pk": true },
+        "marketplace_product_id": { "type": "BIGINT", "nullable": false, "fk": "sync_marketplace_product_v2" },
+        "fulfillment_channel": { "type": "VARCHAR", "nullable": true },
+        "price": { "type": "DECIMAL(10,2)", "nullable": true },
+        "points": { "type": "INT", "nullable": true },
+        "points_type": { "type": "VARCHAR", "nullable": true },
+        "stock": { "type": "INT", "nullable": true },
+        "min_handling_days": { "type": "INT", "nullable": true },
+        "max_handling_days": { "type": "INT", "nullable": true }
+      },
+      "validations": [
+        { "type": "foreign_key_check", "fk": "marketplace_product_id", "references": "sync_marketplace_product_v2" },
+        { "type": "price_positive", "column": "price" },
+        { "type": "stock_non_negative", "column": "stock" },
+        { "type": "handling_days_order", "description": "min_handling_days <= max_handling_days" }
+      ]
+    },
+    {
+      "name": "sync_product_detail_v2",
+      "entity": "ProductDetailEntityV2",
+      "columns": {
+        "product_detail_id": { "type": "BIGINT", "nullable": false, "pk": true },
+        "asin": { "type": "VARCHAR", "nullable": false, "fk": "sync_product_v2.asin" },
+        "bullet1": { "type": "TEXT", "nullable": true },
+        "bullet2": { "type": "TEXT", "nullable": true },
+        "bullet3": { "type": "TEXT", "nullable": true },
+        "bullet4": { "type": "TEXT", "nullable": true },
+        "bullet5": { "type": "TEXT", "nullable": true },
+        "search_terms": { "type": "TEXT", "nullable": true }
+      },
+      "validations": [
+        { "type": "foreign_key_check", "fk": "asin", "references": "sync_product_v2" },
+        { "type": "at_least_one_bullet", "description": "At least one bullet must be filled" }
+      ]
+    },
+    {
+      "name": "sync_product_image_v2",
+      "entity": "ProductImageEntityV2",
+      "columns": {
+        "product_image_id": { "type": "BIGINT", "nullable": false, "pk": true },
+        "asin": { "type": "VARCHAR", "nullable": false, "fk": "sync_product_v2.asin" },
+        "image_url": { "type": "TEXT", "nullable": false },
+        "image_rank": { "type": "INT", "nullable": false },
+        "deleted": { "type": "BOOLEAN", "default": false }
+      },
+      "validations": [
+        { "type": "foreign_key_check", "fk": "asin", "references": "sync_product_v2" },
+        { "type": "valid_url", "column": "image_url" },
+        { "type": "unique_rank_per_asin", "description": "No duplicate image_rank for same ASIN" }
+      ]
+    },
+    {
+      "name": "sync_product_restriction_v2",
+      "entity": "ProductRestrictionEntityV2",
+      "columns": {
+        "restriction_id": { "type": "BIGINT", "nullable": false, "pk": true },
+        "asin": { "type": "VARCHAR", "nullable": false, "fk": "sync_product_v2.asin" },
+        "restriction_type": { "type": "VARCHAR", "nullable": true },
+        "reason": { "type": "TEXT", "nullable": true }
+      },
+      "validations": [
+        { "type": "foreign_key_check", "fk": "asin", "references": "sync_product_v2" }
+      ]
+    }
+  ],
+  "criticalValidations": [
+    { "priority": "CRITICAL", "name": "Price Order (min <= std <= max)", "impact": "Pricing errors in Amazon listing" },
+    { "priority": "CRITICAL", "name": "Foreign Key Validity", "impact": "Data corruption & orphaned records" },
+    { "priority": "HIGH", "name": "Profit Calculation", "impact": "Wrong profit reports" },
+    { "priority": "HIGH", "name": "Stock Consistency", "impact": "Inventory sync failures" },
+    { "priority": "MEDIUM", "name": "Dimension Validity", "impact": "Product creation failures" },
+    { "priority": "MEDIUM", "name": "Enum Values", "impact": "Unexpected behavior" }
+  ]
+}
