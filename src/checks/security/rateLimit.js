@@ -1,4 +1,4 @@
-const pLimit = require("p-limit").default;
+const pLimit = require("p-limit");
 const { PRODUCT_PATH, STORE_ID, KNOWN_GOOD_ASIN } = require("../../config");
 const { getWithAuth } = require("../../api");
 

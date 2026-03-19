@@ -1,5 +1,5 @@
 const readline = require("readline");
-const chalk = require("chalk").default;
+const chalk = require("chalk");
 const { setAccount, accounts } = require("../auth");
 
 async function selectAccount() {
