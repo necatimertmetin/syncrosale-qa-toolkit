@@ -4,7 +4,6 @@ const buyableButNotActive = require("../checks/data/buyableButNotActive/run");
 const orderAudit = require("../checks/data/orderAudit/run");
 const productAudit = require("../checks/data/productAudit/run");
 const productAuditAdvanced = require("../checks/data/productAudit/runFiltered");
-const v2EntityValidation = require("../checks/data/v2-entity-validation/run");
 // security
 const inputValidation = require("../checks/security/inputValidation");
 const authzIsolation = require("../checks/security/authzIsolation");
@@ -13,17 +12,6 @@ const rateLimit = require("../checks/security/rateLimit");
 const performance = require("../checks/security/performance");
 
 const tools = [
-  {
-    section: "DATA",
-    name: "V2 Entity Validation (SYNC-9999)",
-    description: "Detects all bugs in V2 entities directly from database - backend independent",
-    input: "None (reads from DB)",
-    output: "Comprehensive validation report + data corruption detection",
-    impact: "CRITICAL",
-    tags: ["v2-entities", "validation", "database", "sync-9999"],
-    run: v2EntityValidation,
-  },
-
   {
     section: "DATA",
     name: "Data Reconciliation",

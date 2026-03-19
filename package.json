@@ -4,12 +4,7 @@
   "main": "api.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --expose-gc runner.js",
-    "api": "node api.js",
-    "api:list": "node api.js --action=list",
-    "api:validate": "node api.js --action=validate",
-    "v2-validate": "node src/checks/data/v2-entity-validation/run.js",
-    "v2-validate:interactive": "node runner.js"
+    "start": "node --expose-gc runner.js"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +16,6 @@
     "csv-parse": "^6.1.0",
     "dotenv": "^17.3.1",
     "ora": "^9.3.0",
-    "p-limit": "^7.3.0",
-    "pg": "^8.11.0"
+    "p-limit": "^7.3.0"
   }
 }
