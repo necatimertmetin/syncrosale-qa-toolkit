@@ -1,6 +1,7 @@
 const axios = require("axios");
 const ora = require("ora").default;
-const chalk = require("chalk").default;
+const _chalk = require("chalk");
+const chalk = _chalk.default || _chalk;
 
 const { API_BASE } = require("./config");
 const { getAccessToken, refreshAccessToken } = require("./auth");

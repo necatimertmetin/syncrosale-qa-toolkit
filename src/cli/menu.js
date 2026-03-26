@@ -1,5 +1,6 @@
 const readline = require("readline");
-const chalk = require("chalk").default;
+const _chalk = require("chalk");
+const chalk = _chalk.default || _chalk;
 const { getCurrentAccount } = require("../auth");
 let keypressHandler = null;
 

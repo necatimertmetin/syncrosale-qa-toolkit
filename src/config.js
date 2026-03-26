@@ -1,8 +1,9 @@
 module.exports = {
-  API_BASE: "https://api.syncrosale.com/api/v1",
+  API_BASE: process.env.SYNCRO_API_URL || "https://api.syncrosale.com/api/v1",
   AUTH_URL:
+    process.env.SYNCRO_AUTH_URL ||
     "https://auth.syncrosale.com/realms/syncrosale/protocol/openid-connect/token",
-  CLIENT_ID: "syncrosale",
+  CLIENT_ID: process.env.SYNCRO_CLIENT_ID || "syncrosale",
 
   // Hedef endpoint(ler)
   STORE_ID: 1,

@@ -1,4 +1,5 @@
-require("dotenv").config();
+const env = process.argv[2] || "dev";
+require("dotenv").config({ path: `.env.${env}` });
 
 const { createCLI } = require("./src/cli/menu");
 const { tools } = require("./src/cli/tools");
