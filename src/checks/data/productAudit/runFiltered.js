@@ -1,5 +1,6 @@
 const readline = require("readline");
 const { getWithAuth } = require("../../../api");
+const { getStoreId } = require("../../../auth");
 const { PRESETS } = require("./presets");
 const { runAudits } = require("./audits");
 
@@ -118,8 +119,9 @@ function printPresetList() {
    ========================================================= */
 
 async function fetchCsv(predicate) {
+  const storeId = getStoreId();
   const res = await getWithAuth(
-    "/store/1/product/export",
+    `/store/${storeId}/product/export`,
     2, // retries
     {
       params: {

@@ -942,13 +942,9 @@ function analyzeFinancials(datasets) {
   // Process active products for financial analysis
   if (datasets.active && datasets.active.csv) {
     const { rows } = parseCsv(datasets.active.csv);
-    const headers = parseCsv(datasets.active.csv).headers;
 
     rows.forEach((row) => {
-      const product = {};
-      headers.forEach((header, index) => {
-        product[header] = row[index];
-      });
+      const product = row;
 
       const cost = parseFloat(product.Cost) || 0;
       const price = parseFloat(product.Price) || 0;
@@ -997,9 +993,11 @@ function analyzeFinancials(datasets) {
   // Calculate averages
   if (products.length > 0) {
     financials.avgProfitMargin =
-      ((financials.totalRevenue - financials.totalCost) /
-        financials.totalRevenue) *
-      100;
+      financials.totalRevenue > 0
+        ? ((financials.totalRevenue - financials.totalCost) /
+            financials.totalRevenue) *
+          100
+        : 0;
     financials.costCoverage =
       (products.filter((p) => parseFloat(p.Cost) > 0).length /
         products.length) *
@@ -1033,13 +1031,9 @@ function analyzeStock(datasets) {
   // Analyze active products stock
   if (datasets.active && datasets.active.csv) {
     const { rows } = parseCsv(datasets.active.csv);
-    const headers = parseCsv(datasets.active.csv).headers;
 
     rows.forEach((row) => {
-      const product = {};
-      headers.forEach((header, index) => {
-        product[header] = row[index];
-      });
+      const product = row;
 
       const stockLevel = parseInt(product.Stock) || 0;
       stock.totalProducts++;
@@ -1094,13 +1088,9 @@ function analyzeCategories(datasets) {
   // Analyze active products
   if (datasets.active && datasets.active.csv) {
     const { rows } = parseCsv(datasets.active.csv);
-    const headers = parseCsv(datasets.active.csv).headers;
 
     rows.forEach((row) => {
-      const product = {};
-      headers.forEach((header, index) => {
-        product[header] = row[index];
-      });
+      const product = row;
 
       const mainCat = product["Main Category Id"];
       const subCat = product["Sub Category Id"];
@@ -1154,13 +1144,9 @@ function analyzeBrands(datasets) {
   // Analyze active products
   if (datasets.active && datasets.active.csv) {
     const { rows } = parseCsv(datasets.active.csv);
-    const headers = parseCsv(datasets.active.csv).headers;
 
     rows.forEach((row) => {
-      const product = {};
-      headers.forEach((header, index) => {
-        product[header] = row[index];
-      });
+      const product = row;
 
       const brand = product.Brand || "Unknown";
       const price = parseFloat(product.Price) || 0;
@@ -1207,16 +1193,12 @@ function analyzeQuality(datasets) {
   // Analyze active products
   if (datasets.active && datasets.active.csv) {
     const { rows } = parseCsv(datasets.active.csv);
-    const headers = parseCsv(datasets.active.csv).headers;
 
     let totalRating = 0;
     let ratedProducts = 0;
 
     rows.forEach((row) => {
-      const product = {};
-      headers.forEach((header, index) => {
-        product[header] = row[index];
-      });
+      const product = row;
 
       const rating = parseFloat(product["Review Rate"]) || 0;
       const category = product["Main Category Id"];

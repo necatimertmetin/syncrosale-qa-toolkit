@@ -1,4 +1,5 @@
 const { getWithAuth } = require("../../../api");
+const { getStoreId } = require("../../../auth");
 
 const { audit } = require("./productAudit");
 
@@ -6,7 +7,10 @@ async function run() {
   try {
     console.log("📥 Fetching products from Syncro API...\n");
 
-    const res = await getWithAuth("/store/1/product/export");
+    const storeId = getStoreId();
+    const res = await getWithAuth(`/store/${storeId}/product/export`, 2, {
+      headers: { Accept: "text/csv" },
+    });
 
     if (res.status !== 200) {
       console.log("❌ Failed to fetch CSV:", res.status);
@@ -14,7 +18,7 @@ async function run() {
     }
 
     const csv =
-      typeof res.data === "string" ? res.data : JSON.stringify(res.data);
+      typeof res.data === "string" ? res.data : res.data.toString("utf8");
 
     const results = audit(csv);
 

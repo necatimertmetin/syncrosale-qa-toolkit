@@ -4,11 +4,33 @@ const accounts = require("../config/accounts.json");
 
 let accessToken = null;
 let refreshToken = null;
+let currentStoreId = null;
 
 let currentAccount = null;
 
 let isRefreshing = false;
 let refreshPromise = null;
+
+function decodeJwtPayload(token) {
+  try {
+    const payloadBase64 = token.split(".")[1];
+    return JSON.parse(Buffer.from(payloadBase64, "base64url").toString("utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function resolveStoreId(token) {
+  const payload = decodeJwtPayload(token);
+  // Try common claim names Keycloak/Syncrosale might use
+  const fromToken =
+    payload.storeId ?? payload.store_id ?? payload.store ?? null;
+  if (fromToken !== null && fromToken !== undefined) return Number(fromToken);
+  // Fall back to accounts.json storeId
+  if (currentAccount?.storeId !== undefined && currentAccount.storeId !== null)
+    return Number(currentAccount.storeId);
+  return null;
+}
 
 function setAccount(name) {
   const acc = accounts[name];
@@ -49,8 +71,16 @@ async function login() {
 
   accessToken = res.data.access_token;
   refreshToken = res.data.refresh_token;
+  currentStoreId = resolveStoreId(accessToken);
 
   console.log("✅ LOGIN SUCCESS");
+  if (currentStoreId !== null) {
+    console.log(`🏪 Store ID: ${currentStoreId}`);
+  } else {
+    console.log(
+      '⚠️  Store ID not found in token — add "storeId" to this account in config/accounts.json',
+    );
+  }
 
   return accessToken;
 }
@@ -79,6 +109,7 @@ async function refreshAccessToken() {
 
       accessToken = res.data.access_token;
       refreshToken = res.data.refresh_token;
+      currentStoreId = resolveStoreId(accessToken);
 
       console.log("✅ TOKEN REFRESHED");
 
@@ -98,6 +129,15 @@ function getAccessToken() {
   return accessToken;
 }
 
+function getStoreId() {
+  if (currentStoreId === null) {
+    throw new Error(
+      'Store ID could not be resolved. Add "storeId" to this account in config/accounts.json.',
+    );
+  }
+  return currentStoreId;
+}
+
 async function initAuth() {
   if (!accessToken) await login();
 }
@@ -107,6 +147,7 @@ module.exports = {
   login,
   refreshAccessToken,
   getAccessToken,
+  getStoreId,
   setAccount,
   getCurrentAccount,
   accounts,
