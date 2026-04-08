@@ -7,11 +7,16 @@ function getHealthBadge(score) {
 
 function sevIcon(sev) {
   switch (sev) {
-    case "CRITICAL": return "🔴";
-    case "HIGH": return "🟠";
-    case "MEDIUM": return "🟡";
-    case "LOW": return "🟢";
-    default: return "⚪";
+    case "CRITICAL":
+      return "🔴";
+    case "HIGH":
+      return "🟠";
+    case "MEDIUM":
+      return "🟡";
+    case "LOW":
+      return "🟢";
+    default:
+      return "⚪";
   }
 }
 
@@ -41,7 +46,9 @@ function render(summary, lines, allResults = []) {
   lines.push(`| Products Tested | ${summary.total} |`);
   lines.push(`| Total Issues | ${summary.issueCount} |`);
   lines.push(`| Affected Products | ${summary.affectedProducts} |`);
-  lines.push(`| Clean Products | ${summary.cleanProducts} (${summary.cleanRate}%) |`);
+  lines.push(
+    `| Clean Products | ${summary.cleanProducts} (${summary.cleanRate}%) |`,
+  );
   lines.push("");
 
   // ── Severity ──
@@ -79,7 +86,9 @@ function render(summary, lines, allResults = []) {
   lines.push("");
 
   // ── By Type (detailed) ──
-  const sortedTypes = Object.entries(summary.byType).sort((a, b) => b[1] - a[1]);
+  const sortedTypes = Object.entries(summary.byType).sort(
+    (a, b) => b[1] - a[1],
+  );
   if (sortedTypes.length > 0) {
     lines.push("## 🔍 Issue Types");
     lines.push("");
@@ -98,13 +107,17 @@ function render(summary, lines, allResults = []) {
     lines.push("| ASIN | Issues | 🔴 | 🟠 | 🟡 |");
     lines.push("|------|--------|-----|-----|-----|");
     for (const p of summary.topOffenders.slice(0, 15)) {
-      lines.push(`| ${p.asin} | ${p.issueCount} | ${p.critical} | ${p.high} | ${p.medium} |`);
+      lines.push(
+        `| ${p.asin} | ${p.issueCount} | ${p.critical} | ${p.high} | ${p.medium} |`,
+      );
     }
     lines.push("");
   }
 
   // ── Sample Issues ──
-  const samples = allResults.filter((r) => r.severity === "CRITICAL" || r.severity === "HIGH").slice(0, 20);
+  const samples = allResults
+    .filter((r) => r.severity === "CRITICAL" || r.severity === "HIGH")
+    .slice(0, 20);
   if (samples.length > 0) {
     lines.push("## 🚨 Critical & High Issues (sample)");
     lines.push("");
@@ -113,7 +126,9 @@ function render(summary, lines, allResults = []) {
         .filter(([k]) => !["type", "severity", "asin"].includes(k))
         .map(([k, v]) => `${k}=${v}`)
         .join(", ");
-      lines.push(`- ${sevIcon(s.severity)} **${s.type}** \`${s.asin}\` ${extras}`);
+      lines.push(
+        `- ${sevIcon(s.severity)} **${s.type}** \`${s.asin}\` ${extras}`,
+      );
     }
     lines.push("");
   }

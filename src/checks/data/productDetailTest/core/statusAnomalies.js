@@ -26,7 +26,10 @@ function runStatusAnomalies(detail) {
   const results = [];
 
   // Buyable but not active
-  if (amazonListingsItemStatus === "BUYABLE" && storeProductStatus !== "ACTIVE") {
+  if (
+    amazonListingsItemStatus === "BUYABLE" &&
+    storeProductStatus !== "ACTIVE"
+  ) {
     results.push({
       type: "BUYABLE_NOT_ACTIVE",
       severity: "HIGH",
@@ -37,7 +40,11 @@ function runStatusAnomalies(detail) {
   }
 
   // Active but zero stock
-  if (storeProductStatus === "ACTIVE" && stock === 0 && (inventoryStock == null || inventoryStock === 0)) {
+  if (
+    storeProductStatus === "ACTIVE" &&
+    stock === 0 &&
+    (inventoryStock == null || inventoryStock === 0)
+  ) {
     results.push({
       type: "ACTIVE_ZERO_STOCK",
       severity: "MEDIUM",

@@ -13,7 +13,8 @@ const COST_TOLERANCE = 0.05; // 5% tolerance
 
 function runSupplierCrossCheck(detail) {
   if (!detail) return [];
-  const { asin, supplier, price, stock, inventoryStock, storeProductStatus } = detail;
+  const { asin, supplier, price, stock, inventoryStock, storeProductStatus } =
+    detail;
   const results = [];
 
   // No supplier but product has cost data

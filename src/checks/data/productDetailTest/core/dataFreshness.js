@@ -28,7 +28,8 @@ function hoursBetween(a, b) {
 
 function runDataFreshness(detail) {
   if (!detail) return [];
-  const { asin, supplier, marketplaceProduct, updated, updatedAtAmazon } = detail;
+  const { asin, supplier, marketplaceProduct, updated, updatedAtAmazon } =
+    detail;
   const results = [];
 
   // Stale supplier

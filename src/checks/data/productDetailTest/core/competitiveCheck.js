@@ -11,14 +11,23 @@
 
 function runCompetitiveCheck(detail) {
   if (!detail) return [];
-  const { asin, buyBoxWinner, lowestPrice, offerCount, price, marketplaceProduct } = detail;
+  const {
+    asin,
+    buyBoxWinner,
+    lowestPrice,
+    offerCount,
+    price,
+    marketplaceProduct,
+  } = detail;
   const results = [];
 
   if (!marketplaceProduct) return results;
 
   // BuyBox winner inconsistency
   if (buyBoxWinner === true && marketplaceProduct.offers?.length) {
-    const actualWinner = marketplaceProduct.offers.find((o) => o.isBuyBoxWinner === true);
+    const actualWinner = marketplaceProduct.offers.find(
+      (o) => o.isBuyBoxWinner === true,
+    );
     if (!actualWinner) {
       results.push({
         type: "BUYBOX_WINNER_NO_OFFER_MATCH",
@@ -30,7 +39,11 @@ function runCompetitiveCheck(detail) {
   }
 
   // Lowest price flag inconsistency
-  if (lowestPrice === true && price?.finalPrice != null && marketplaceProduct.lowestPriceAmount != null) {
+  if (
+    lowestPrice === true &&
+    price?.finalPrice != null &&
+    marketplaceProduct.lowestPriceAmount != null
+  ) {
     if (price.finalPrice > marketplaceProduct.lowestPriceAmount * 1.02) {
       results.push({
         type: "LOWEST_PRICE_FLAG_MISMATCH",

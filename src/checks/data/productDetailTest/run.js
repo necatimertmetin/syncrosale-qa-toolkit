@@ -10,7 +10,9 @@ const { audit } = require("./productDetailTest");
 
 async function fetchProductDetail(storeId, asin) {
   try {
-    const res = await getWithAuth(`/store/${storeId}/product/${asin}`, 2, { silent: true });
+    const res = await getWithAuth(`/store/${storeId}/product/${asin}`, 2, {
+      silent: true,
+    });
     if (res.status !== 200) return null;
     return res.data?.responseData ?? res.data;
   } catch {
@@ -33,7 +35,10 @@ async function run() {
       return [];
     }
 
-    const csvText = typeof csvRes.data === "string" ? csvRes.data : csvRes.data.toString("utf8");
+    const csvText =
+      typeof csvRes.data === "string"
+        ? csvRes.data
+        : csvRes.data.toString("utf8");
     const rows = parse(csvText.replace(/^\uFEFF/, ""), {
       columns: true,
       skip_empty_lines: true,
@@ -50,7 +55,9 @@ async function run() {
     }
 
     // 2. Fetch product details concurrently
-    console.log(`🌐 Fetching product details (concurrency=${CONCURRENCY})...\n`);
+    console.log(
+      `🌐 Fetching product details (concurrency=${CONCURRENCY})...\n`,
+    );
 
     let done = 0;
     const total = asins.length;
@@ -69,7 +76,9 @@ async function run() {
     );
 
     const validDetails = details.filter(Boolean);
-    console.log(`\n✅ Fetched ${validDetails.length}/${total} product details\n`);
+    console.log(
+      `\n✅ Fetched ${validDetails.length}/${total} product details\n`,
+    );
 
     if (validDetails.length === 0) {
       console.log("No valid product details returned.");

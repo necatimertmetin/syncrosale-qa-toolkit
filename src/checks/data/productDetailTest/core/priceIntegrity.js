@@ -20,23 +20,40 @@ function approxEq(a, b, tol = TOLERANCE) {
 function checkBreakdownSum(label, block, asin) {
   if (!block || block.finalPrice == null) return [];
 
-  const { productCost, shippingCost, warehouseCost, profit, amazonCommission, tax, finalPrice } = block;
+  const {
+    productCost,
+    shippingCost,
+    warehouseCost,
+    profit,
+    amazonCommission,
+    tax,
+    finalPrice,
+  } = block;
 
-  const components = [productCost, shippingCost, warehouseCost, profit, amazonCommission, tax];
+  const components = [
+    productCost,
+    shippingCost,
+    warehouseCost,
+    profit,
+    amazonCommission,
+    tax,
+  ];
   if (components.some((c) => c == null)) return []; // incomplete data, skip
 
   const sum = components.reduce((a, b) => a + b, 0);
 
   if (!approxEq(sum, finalPrice)) {
-    return [{
-      type: "PRICE_BREAKDOWN_MISMATCH",
-      severity: "HIGH",
-      asin,
-      label,
-      expected: Number(sum.toFixed(4)),
-      actual: finalPrice,
-      diff: Number((finalPrice - sum).toFixed(4)),
-    }];
+    return [
+      {
+        type: "PRICE_BREAKDOWN_MISMATCH",
+        severity: "HIGH",
+        asin,
+        label,
+        expected: Number(sum.toFixed(4)),
+        actual: finalPrice,
+        diff: Number((finalPrice - sum).toFixed(4)),
+      },
+    ];
   }
   return [];
 }
@@ -46,7 +63,10 @@ function checkPercentageField(label, block, asin) {
   const results = [];
 
   // commission % check
-  if (block.amazonCommission != null && block.amazonCommissionPercentage != null) {
+  if (
+    block.amazonCommission != null &&
+    block.amazonCommissionPercentage != null
+  ) {
     const computed = (block.amazonCommission / block.finalPrice) * 100;
     if (!approxEq(computed, block.amazonCommissionPercentage, 0.05)) {
       results.push({
@@ -62,7 +82,11 @@ function checkPercentageField(label, block, asin) {
 
   // profit % — backend profitPercentage is a TARGET input, not a computed ratio.
   // Flag only when the realized profit deviates significantly from target.
-  if (block.profit != null && block.profitPercentage != null && block.profitPercentage > 0) {
+  if (
+    block.profit != null &&
+    block.profitPercentage != null &&
+    block.profitPercentage > 0
+  ) {
     const realized = (block.profit / block.finalPrice) * 100;
     const deviation = Math.abs(realized - block.profitPercentage);
     // Only flag if deviation exceeds 5 percentage points (target vs realized)
@@ -88,7 +112,11 @@ function checkMinMaxChain(detail) {
 
   const results = [];
 
-  if (minPrice.finalPrice != null && price.finalPrice != null && price.finalPrice < minPrice.finalPrice) {
+  if (
+    minPrice.finalPrice != null &&
+    price.finalPrice != null &&
+    price.finalPrice < minPrice.finalPrice
+  ) {
     results.push({
       type: "PRICE_BELOW_MIN_DETAIL",
       severity: "HIGH",
@@ -98,7 +126,11 @@ function checkMinMaxChain(detail) {
     });
   }
 
-  if (maxPrice.finalPrice != null && price.finalPrice != null && price.finalPrice > maxPrice.finalPrice) {
+  if (
+    maxPrice.finalPrice != null &&
+    price.finalPrice != null &&
+    price.finalPrice > maxPrice.finalPrice
+  ) {
     results.push({
       type: "PRICE_ABOVE_MAX_DETAIL",
       severity: "HIGH",
@@ -108,7 +140,11 @@ function checkMinMaxChain(detail) {
     });
   }
 
-  if (minPrice.finalPrice != null && maxPrice.finalPrice != null && minPrice.finalPrice > maxPrice.finalPrice) {
+  if (
+    minPrice.finalPrice != null &&
+    maxPrice.finalPrice != null &&
+    minPrice.finalPrice > maxPrice.finalPrice
+  ) {
     results.push({
       type: "MIN_GT_MAX_DETAIL",
       severity: "CRITICAL",
@@ -130,12 +166,14 @@ function checkCurrencyConsistency(detail) {
   if (maxPrice?.priceCurrency) currencies.add(maxPrice.priceCurrency);
 
   if (currencies.size > 1) {
-    return [{
-      type: "CURRENCY_MISMATCH",
-      severity: "CRITICAL",
-      asin,
-      currencies: [...currencies],
-    }];
+    return [
+      {
+        type: "CURRENCY_MISMATCH",
+        severity: "CRITICAL",
+        asin,
+        currencies: [...currencies],
+      },
+    ];
   }
   return [];
 }
@@ -145,7 +183,11 @@ function runPriceIntegrity(detail) {
   const results = [];
 
   // breakdown sum checks for all 3 tiers
-  for (const [label, block] of [["minPrice", detail.minPrice], ["price", detail.price], ["maxPrice", detail.maxPrice]]) {
+  for (const [label, block] of [
+    ["minPrice", detail.minPrice],
+    ["price", detail.price],
+    ["maxPrice", detail.maxPrice],
+  ]) {
     results.push(...checkBreakdownSum(label, block, detail.asin));
     results.push(...checkPercentageField(label, block, detail.asin));
   }

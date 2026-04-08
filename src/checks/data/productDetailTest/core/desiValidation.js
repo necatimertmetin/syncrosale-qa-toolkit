@@ -7,14 +7,19 @@
  *  - warehouseCost vs desi ratio outliers
  */
 
-const DESI_TOLERANCE = 0.50; // 50% tolerance — desi may use shipping box dims, not product dims
+const DESI_TOLERANCE = 0.5; // 50% tolerance — desi may use shipping box dims, not product dims
 
 // Unit → cm conversion factors
 const TO_CM = {
-  centimeters: 1, cm: 1,
-  inches: 2.54, inch: 2.54, in: 2.54,
-  meters: 100, m: 100,
-  millimeters: 0.1, mm: 0.1,
+  centimeters: 1,
+  cm: 1,
+  inches: 2.54,
+  inch: 2.54,
+  in: 2.54,
+  meters: 100,
+  m: 100,
+  millimeters: 0.1,
+  mm: 0.1,
 };
 
 function toCm(dim) {
@@ -37,7 +42,8 @@ function runDesiValidation(detail) {
 
   // desi present but no dimensions
   if (desi != null && desi > 0) {
-    const hasAllDims = height?.value > 0 && length?.value > 0 && width?.value > 0;
+    const hasAllDims =
+      height?.value > 0 && length?.value > 0 && width?.value > 0;
 
     if (!hasAllDims) {
       results.push({
@@ -73,7 +79,12 @@ function runDesiValidation(detail) {
   }
 
   // warehouseCost vs desi ratio — flag if warehouse cost seems disproportionate
-  if (desi != null && desi > 0 && price?.warehouseCost != null && price.warehouseCost > 0) {
+  if (
+    desi != null &&
+    desi > 0 &&
+    price?.warehouseCost != null &&
+    price.warehouseCost > 0
+  ) {
     const ratio = price.warehouseCost / desi;
     // These are just statistical markers, not hard failures
     if (ratio > 50) {

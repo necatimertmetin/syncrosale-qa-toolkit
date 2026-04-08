@@ -58,7 +58,8 @@ const tools = [
   {
     section: "DATA",
     name: "Product Detail Test",
-    description: "Deep validation of product detail API: price integrity, supplier cross-check, status anomalies, competitive analysis, data freshness",
+    description:
+      "Deep validation of product detail API: price integrity, supplier cross-check, status anomalies, competitive analysis, data freshness",
     input: "None (fetches from API)",
     output: "Integrity report + issue breakdown",
     impact: "HIGH",

@@ -33,13 +33,35 @@ function buildSummary(products, results, perProduct) {
 
   for (const r of results) {
     const t = r.type;
-    if (t.includes("PRICE") || t.includes("BREAKDOWN") || t.includes("COMMISSION_PCT") || t.includes("PROFIT_TARGET") || t.includes("CURRENCY") || t === "MIN_GT_MAX_DETAIL") {
+    if (
+      t.includes("PRICE") ||
+      t.includes("BREAKDOWN") ||
+      t.includes("COMMISSION_PCT") ||
+      t.includes("PROFIT_TARGET") ||
+      t.includes("CURRENCY") ||
+      t === "MIN_GT_MAX_DETAIL"
+    ) {
       byCategory.priceIntegrity++;
-    } else if (t.includes("SUPPLIER") || t === "PRICE_WITHOUT_SUPPLIER" || t === "INACTIVE_SUPPLIER_ACTIVE_PRODUCT") {
+    } else if (
+      t.includes("SUPPLIER") ||
+      t === "PRICE_WITHOUT_SUPPLIER" ||
+      t === "INACTIVE_SUPPLIER_ACTIVE_PRODUCT"
+    ) {
       byCategory.supplierCrossCheck++;
-    } else if (t.includes("BUYABLE") || t.includes("ACTIVE") || t.includes("CRITERIA") || t.includes("REGRESSED")) {
+    } else if (
+      t.includes("BUYABLE") ||
+      t.includes("ACTIVE") ||
+      t.includes("CRITERIA") ||
+      t.includes("REGRESSED")
+    ) {
       byCategory.statusAnomalies++;
-    } else if (t.includes("BUYBOX") || t.includes("LOWEST") || t.includes("OFFER") || t.includes("FBA") || t.includes("CHINA")) {
+    } else if (
+      t.includes("BUYBOX") ||
+      t.includes("LOWEST") ||
+      t.includes("OFFER") ||
+      t.includes("FBA") ||
+      t.includes("CHINA")
+    ) {
       byCategory.competitive++;
     } else if (t.includes("STALE") || t.includes("SYNC_LAG")) {
       byCategory.dataFreshness++;
@@ -68,7 +90,15 @@ function buildSummary(products, results, perProduct) {
   const avgPenaltyPerProduct = total > 0 ? totalPenalty / total : 0;
   // 20 penalty points per product = 0% health
   const maxPerProduct = 20;
-  const healthScore = Math.max(0, Number((100 - (Math.min(avgPenaltyPerProduct, maxPerProduct) / maxPerProduct) * 100).toFixed(2)));
+  const healthScore = Math.max(
+    0,
+    Number(
+      (
+        100 -
+        (Math.min(avgPenaltyPerProduct, maxPerProduct) / maxPerProduct) * 100
+      ).toFixed(2),
+    ),
+  );
 
   const summary = {
     type: "SUMMARY",
