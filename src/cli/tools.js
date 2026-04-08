@@ -4,6 +4,7 @@ const buyableButNotActive = require("../checks/data/buyableButNotActive/run");
 const orderAudit = require("../checks/data/orderAudit/run");
 const productAudit = require("../checks/data/productAudit/run");
 const productAuditAdvanced = require("../checks/data/productAudit/runFiltered");
+const productDetailTest = require("../checks/data/productDetailTest/run");
 // security
 const inputValidation = require("../checks/security/inputValidation");
 const authzIsolation = require("../checks/security/authzIsolation");
@@ -52,6 +53,17 @@ const tools = [
     impact: "HIGH",
     tags: ["catalog", "margin", "pricing"],
     run: productAudit.run,
+  },
+
+  {
+    section: "DATA",
+    name: "Product Detail Test",
+    description: "Deep validation of product detail API: price integrity, supplier cross-check, status anomalies, competitive analysis, data freshness",
+    input: "None (fetches from API)",
+    output: "Integrity report + issue breakdown",
+    impact: "HIGH",
+    tags: ["catalog", "pricing", "integrity", "supplier"],
+    run: productDetailTest.run,
   },
 
   {

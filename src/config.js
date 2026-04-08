@@ -14,7 +14,7 @@ module.exports = {
   OTHER_STORE_IDS_TO_TEST: [2, 3, 99],
 
   // Concurrency (agresif değil)
-  CONCURRENCY: 5,
+  CONCURRENCY: 50,
 
   // CSV/rapor
   OUT_DIR: "./results",

@@ -24,7 +24,8 @@ async function runTool(selected, cli) {
     selected.name.includes("Reconciliation") ||
     selected.name.includes("Buyable") ||
     selected.name.includes("Order Audit") ||
-    selected.name.includes("Product Audit")
+    selected.name.includes("Product Audit") ||
+    selected.name.includes("Product Detail Test")
   ) {
     await writeCSV(dir, "report.csv", result);
   }
